@@ -1,10 +1,16 @@
 package adapter
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/jgivc/vapp/internal/entity"
+)
+
+var (
+	errClientDoesNotExists = errors.New("client does not exists")
+	errClientAlreadyExists = errors.New("client already exists")
 )
 
 type ClientRepo struct {
@@ -13,7 +19,7 @@ type ClientRepo struct {
 }
 
 func (r *ClientRepo) getID(host, uniqueID, channel string) string {
-	return ""
+	return fmt.Sprintf("%s::%s", host, uniqueID)
 }
 
 func (r *ClientRepo) exists(id string) bool {
@@ -29,7 +35,7 @@ func (r *ClientRepo) New(host, uniqueID, channel, number string) (*entity.Client
 	defer r.mux.Unlock()
 
 	if r.exists(id) {
-		return nil, fmt.Errorf("client with id: %s is already exists", id)
+		return nil, fmt.Errorf("%w, client_id: %s", errClientAlreadyExists, id)
 	}
 
 	client := entity.NewClient(host, uniqueID, channel, number)
@@ -45,7 +51,7 @@ func (r *ClientRepo) Remove(host, uniqueID, channel string) error {
 	defer r.mux.Unlock()
 
 	if !r.exists(id) {
-		return fmt.Errorf("client with id: %s does not exists", id)
+		return fmt.Errorf("%w, client_id: %s", errClientDoesNotExists, id)
 	}
 
 	r.clients[id].Close()

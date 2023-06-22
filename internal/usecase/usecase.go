@@ -6,10 +6,6 @@ import (
 	"github.com/jgivc/vapp/internal/entity"
 )
 
-/*
-	Usecase are the features that the app provides.
-*/
-
 type (
 	clientRepo interface {
 		New(host, uniqueID, channel, number string) (*entity.Client, error)
