@@ -19,7 +19,7 @@ type (
 	VoipAdapter interface {
 		//TODO: Must cancel on context
 		Answer(ctx context.Context, client *entity.Client) error
-		Playback(ctx context.Context, client *entity.Client) error
+		Playback(ctx context.Context, client *entity.Client, fileName string) error
 		StartMOH(ctx context.Context, client *entity.Client) error
 		StopMOH(ctx context.Context, client *entity.Client) error
 	}
@@ -35,5 +35,9 @@ type (
 		Info(args ...interface{})
 		Warn(args ...interface{})
 		Error(args ...interface{})
+	}
+
+	Dialer interface {
+		Notify()
 	}
 )

@@ -5,14 +5,13 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/entity"
 )
 
 const (
 	NewClient = iota
 	Hangup
-
-	handleClientTimeout = 5 * time.Second
 )
 
 var (
@@ -26,12 +25,13 @@ type clientDto struct {
 }
 
 type ClientService struct {
-	voip   VoipAdapter
-	queue  Queue
-	repo   ClientRepo
-	dialer DialerService
-	logger Logger
-	ch     chan clientDto
+	voip                VoipAdapter
+	queue               Queue
+	repo                ClientRepo
+	dialer              Dialer
+	logger              Logger
+	handleClientTimeout time.Duration
+	ch                  chan clientDto
 }
 
 func (s *ClientService) NewClient(number string, data interface{}) error {
@@ -88,7 +88,7 @@ func (s *ClientService) Start(ctx context.Context) {
 }
 
 func (s *ClientService) handleClient(ctx context.Context, client *entity.Client) {
-	clientCtx, cancel := context.WithTimeout(ctx, handleClientTimeout)
+	clientCtx, cancel := context.WithTimeout(ctx, s.handleClientTimeout)
 	defer cancel()
 
 	go func() {
@@ -127,14 +127,15 @@ func (s *ClientService) handleClient(ctx context.Context, client *entity.Client)
 	s.dialer.Notify()
 }
 
-func NesClientService(voip VoipAdapter, queue Queue, repo ClientRepo,
-	dialer DialerService, logger Logger) *ClientService {
+func NesClientService(cfg *config.ClientService, voip VoipAdapter, queue Queue, repo ClientRepo,
+	dialer Dialer, logger Logger) *ClientService {
 	return &ClientService{
-		voip:   voip,
-		queue:  queue,
-		repo:   repo,
-		dialer: dialer,
-		logger: logger,
-		ch:     make(chan clientDto),
+		voip:                voip,
+		queue:               queue,
+		repo:                repo,
+		dialer:              dialer,
+		logger:              logger,
+		handleClientTimeout: cfg.HandleClientTimeout,
+		ch:                  make(chan clientDto, cfg.ChannelBufferSize),
 	}
 }
