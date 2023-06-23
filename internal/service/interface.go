@@ -1,4 +1,4 @@
-package usecase
+package service
 
 import (
 	"context"
@@ -7,25 +7,33 @@ import (
 )
 
 type (
-	clientRepo interface {
-		New(host, uniqueID, channel, number string) (*entity.Client, error)
-		Remove(host, uniqueID, channel string) error
-	}
+	// Adapters.
 
-	queueService interface {
+	Queue interface {
 		IsFull() bool
+		HasClients() bool
 		Push(client *entity.Client) error
 		Pop() (*entity.Client, error)
 	}
 
-	dialerService interface {
-		Notify()
-	}
-
-	voipService interface {
+	VoipAdapter interface {
+		//TODO: Must cancel on context
 		Answer(ctx context.Context, client *entity.Client) error
 		Playback(ctx context.Context, client *entity.Client) error
 		StartMOH(ctx context.Context, client *entity.Client) error
 		StopMOH(ctx context.Context, client *entity.Client) error
+	}
+
+	ClientRepo interface {
+		New(number string, data interface{}) (*entity.Client, error)
+		Remove(number string, data interface{}) error
+	}
+
+	OperatorRepo interface{}
+
+	Logger interface {
+		Info(args ...interface{})
+		Warn(args ...interface{})
+		Error(args ...interface{})
 	}
 )

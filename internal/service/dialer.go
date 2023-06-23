@@ -1,8 +1,5 @@
 package service
 
-type DialerService struct {
-}
+type DialerService struct{}
 
-func (s *DialerService) Notify() {
-
-}
+func (s *DialerService) Notify() {}

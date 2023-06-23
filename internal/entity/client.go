@@ -1,23 +1,24 @@
 package entity
 
-import "fmt"
+import (
+	"github.com/google/uuid"
+)
 
 type Client struct {
-	Host     string
-	UniqueID string
-	Channel  string
-	Number   string
-	ch       chan struct{}
+	ID     string
+	Number string
+	Data   interface{}
+	lost   chan struct{}
 }
 
 func (c *Client) String() string {
-	return fmt.Sprintf("%s@%s", c.Channel, c.Host)
+	return c.ID
 }
 
 func (c *Client) Close() {
-	//It synchronized by QueueService mutex
+	//TODO: synchronize
 	select {
-	case _, ok := <-c.ch:
+	case _, ok := <-c.lost:
 		if !ok {
 			// Already closed
 			return
@@ -25,16 +26,16 @@ func (c *Client) Close() {
 	default:
 	}
 
-	close(c.ch)
+	close(c.lost)
 }
 
-func (c *Client) Hangup() <-chan struct{} {
-	return c.ch
+func (c *Client) Lost() <-chan struct{} {
+	return c.lost
 }
 
 func (c *Client) IsAlive() bool {
 	select {
-	case _, ok := <-c.ch:
+	case _, ok := <-c.lost:
 		if !ok {
 			return false
 		}
@@ -44,12 +45,11 @@ func (c *Client) IsAlive() bool {
 	return true
 }
 
-func NewClient(host, uniqueID, channel, number string) Client {
+func NewClient(number string, data interface{}) Client {
 	return Client{
-		Host:     host,
-		UniqueID: uniqueID,
-		Channel:  channel,
-		Number:   number,
-		ch:       make(chan struct{}),
+		ID:     uuid.New().String(),
+		Number: number,
+		Data:   data,
+		lost:   make(chan struct{}),
 	}
 }
