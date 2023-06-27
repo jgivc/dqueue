@@ -17,6 +17,10 @@ func (s *ClientRepoTestSuite) SetupTest() {
 	s.repo = adapter.NewClientRepo()
 }
 
+func (s *ClientRepoTestSuite) AfterTest(_, _ string) {
+	s.repo.Close()
+}
+
 func (s *ClientRepoTestSuite) TestNewFailNoData() {
 	_, err := s.repo.New("1234", nil)
 

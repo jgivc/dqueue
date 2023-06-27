@@ -26,6 +26,7 @@ type httpAPIClient struct {
 
 func (c *httpAPIClient) Get(ctx context.Context) (io.ReadCloser, error) {
 	transport := &http.Transport{
+		//nolint:gosec // Able to disable InsecureSkipVerify for selfsigned certificates.
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: c.noVerify},
 	}
 
@@ -70,6 +71,7 @@ func (r *OperatorRepo) load(ctx context.Context) ([]*entity.Operator, error) {
 }
 
 func (r *OperatorRepo) GetOperators(ctx context.Context) ([]*entity.Operator, error) {
+	// FIXME: May be not loading them every time? Cache?
 	ops, err := r.load(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot load operators: %w", err)

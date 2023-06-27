@@ -13,6 +13,7 @@ var (
 	errQueue = errors.New("queue error")
 )
 
+// TODO: Remove closed clients
 type Queue struct {
 	maxClients int
 	mux        sync.Mutex
@@ -44,6 +45,10 @@ func (q *Queue) HasClients() bool {
 func (q *Queue) Push(client *entity.Client) error {
 	q.mux.Lock()
 	defer q.mux.Unlock()
+
+	if client == nil {
+		return fmt.Errorf("client cannot be nil: %w", errQueue)
+	}
 
 	if q.isFull() {
 		return fmt.Errorf("cannot insert client, queue is full: %w", errQueue)
@@ -77,7 +82,11 @@ func (q *Queue) Close() {
 	for e := q.clients.Front(); e != nil; q.clients.Remove(e) {
 		e = q.clients.Front()
 
-		e.Value = nil
+		if e != nil {
+			e.Value = nil
+		} else {
+			break
+		}
 	}
 }
 
