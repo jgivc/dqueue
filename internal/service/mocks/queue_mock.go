@@ -1,4 +1,4 @@
-package mock
+package mocks
 
 import (
 	"github.com/jgivc/vapp/internal/entity"

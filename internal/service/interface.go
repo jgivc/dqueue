@@ -22,6 +22,7 @@ type (
 		Playback(ctx context.Context, client *entity.Client, fileName string) error
 		StartMOH(ctx context.Context, client *entity.Client) error
 		StopMOH(ctx context.Context, client *entity.Client) error
+		Dial(ctx context.Context, client *entity.Client, operators ...entity.Operator) error
 	}
 
 	ClientRepo interface {
@@ -29,7 +30,10 @@ type (
 		Remove(number string, data interface{}) error
 	}
 
-	OperatorRepo interface{}
+	OperatorRepo interface {
+		GetOperators(ctx context.Context) ([]*entity.Operator, error)
+		SetBusy(number string, busy bool)
+	}
 
 	Logger interface {
 		Info(args ...interface{})

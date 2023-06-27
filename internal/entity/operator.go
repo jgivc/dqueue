@@ -3,10 +3,10 @@ package entity
 import "sync/atomic"
 
 type Operator struct {
-	Number    string
-	FirstName string
-	LastName  string
-	busy      atomic.Bool
+	Number    string      `json:"number"`
+	FirstName string      `json:"last_name"`
+	LastName  string      `json:"first_name"`
+	busy      atomic.Bool `json:"-"`
 }
 
 func (o *Operator) SetBusy(val bool) {
@@ -15,4 +15,12 @@ func (o *Operator) SetBusy(val bool) {
 
 func (o *Operator) IsBusy() bool {
 	return o.busy.Load()
+}
+
+func NewOperator(number, firstName, lastName string) *Operator {
+	return &Operator{
+		Number:    number,
+		FirstName: firstName,
+		LastName:  lastName,
+	}
 }

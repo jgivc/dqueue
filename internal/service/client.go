@@ -63,7 +63,12 @@ func (s *ClientService) Hangup(number string, data interface{}) error {
 }
 
 func (s *ClientService) Start(ctx context.Context) {
+	started := make(chan struct{})
+	defer close(started)
+
 	go func() {
+		started <- struct{}{}
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -85,6 +90,8 @@ func (s *ClientService) Start(ctx context.Context) {
 			}
 		}
 	}()
+
+	<-started
 }
 
 func (s *ClientService) handleClient(ctx context.Context, client *entity.Client) {
@@ -127,7 +134,7 @@ func (s *ClientService) handleClient(ctx context.Context, client *entity.Client)
 	s.dialer.Notify()
 }
 
-func NesClientService(cfg *config.ClientService, voip VoipAdapter, queue Queue, repo ClientRepo,
+func NewClientService(cfg *config.ClientService, voip VoipAdapter, queue Queue, repo ClientRepo,
 	dialer Dialer, logger Logger) *ClientService {
 	return &ClientService{
 		voip:                voip,
