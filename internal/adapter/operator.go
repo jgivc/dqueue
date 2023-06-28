@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,10 @@ import (
 
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/entity"
+)
+
+var (
+	errOperatorRepo = errors.New("operatorRepo error")
 )
 
 type APIClient interface {
@@ -71,7 +76,7 @@ func (r *OperatorRepo) load(ctx context.Context) ([]*entity.Operator, error) {
 }
 
 func (r *OperatorRepo) GetOperators(ctx context.Context) ([]*entity.Operator, error) {
-	// FIXME: May be not loading them every time? Cache?
+	// FIXME: May be not loading them every time? Cache? It must be implemented in APIClient (for testing)
 	ops, err := r.load(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot load operators: %w", err)
@@ -110,13 +115,17 @@ func (r *OperatorRepo) GetOperators(ctx context.Context) ([]*entity.Operator, er
 	return operators, nil
 }
 
-func (r *OperatorRepo) SetBusy(number string, busy bool) {
+func (r *OperatorRepo) SetBusy(number string, busy bool) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
 	if _, exists := r.operators[number]; exists {
 		r.operators[number].SetBusy(busy)
+
+		return nil
 	}
+
+	return fmt.Errorf("operator %s does not exists: %w", number, errOperatorRepo)
 }
 
 func (r *OperatorRepo) Close() {
@@ -133,6 +142,13 @@ func NewOperatorRepo(cfg *config.OperatorRepo) *OperatorRepo {
 			apiURL:     cfg.APIURL,
 			apiTimeout: cfg.APITimeout,
 		},
+		operators: make(map[string]*entity.Operator),
+	}
+}
+
+func NewOperatorRepoWithAPIClient(apiClient APIClient) *OperatorRepo {
+	return &OperatorRepo{
+		apiClient: apiClient,
 		operators: make(map[string]*entity.Operator),
 	}
 }

@@ -32,7 +32,7 @@ type (
 
 	OperatorRepo interface {
 		GetOperators(ctx context.Context) ([]*entity.Operator, error)
-		SetBusy(number string, busy bool)
+		SetBusy(number string, busy bool) error
 	}
 
 	Logger interface {

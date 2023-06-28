@@ -1,6 +1,9 @@
 package entity
 
-import "sync/atomic"
+import (
+	"fmt"
+	"sync/atomic"
+)
 
 type Operator struct {
 	Number    string      `json:"number"`
@@ -15,6 +18,10 @@ func (o *Operator) SetBusy(val bool) {
 
 func (o *Operator) IsBusy() bool {
 	return o.busy.Load()
+}
+
+func (o *Operator) String() string {
+	return fmt.Sprintf("<Operator: %s>", o.Number)
 }
 
 func NewOperator(number, firstName, lastName string) *Operator {
