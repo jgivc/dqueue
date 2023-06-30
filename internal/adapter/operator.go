@@ -76,7 +76,9 @@ func (r *OperatorRepo) load(ctx context.Context) ([]*entity.Operator, error) {
 }
 
 func (r *OperatorRepo) GetOperators(ctx context.Context) ([]*entity.Operator, error) {
-	// FIXME: May be not loading them every time? Cache? It must be implemented in APIClient (for testing)
+	// FIXME: May be not loading them every time? Cache?
+	// It must be implemented in APIClient (for testing)
+	// Or implement 304 http server response
 	ops, err := r.load(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot load operators: %w", err)

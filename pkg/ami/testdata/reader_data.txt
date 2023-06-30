@@ -1,0 +1,60 @@
+Event: Newchannel
+Privilege: call,all
+Channel: PJSIP/kamailio-0000afcf
+ChannelState: 0
+ChannelStateDesc: Down
+CallerIDNum: <unknown>
+CallerIDName: <unknown>
+ConnectedLineNum: <unknown>
+ConnectedLineName: <unknown>
+Language: en
+AccountCode: 
+Context: kamailio
+Exten: s
+Priority: 1
+Uniqueid: 1688119039.328202
+Linkedid: 1688119039.328200
+
+Event: BridgeEnter
+Privilege: call,all
+BridgeUniqueid: 3abadd62-6dad-4c44-9679-4f1081103354
+BridgeType: basic
+BridgeTechnology: simple_bridge
+BridgeCreator: <unknown>
+BridgeName: <unknown>
+BridgeNumChannels: 2
+BridgeVideoSourceMode: none
+Channel: PJSIP/sip1-0000afcc
+ChannelState: 6
+ChannelStateDesc: Up
+CallerIDNum: 1111
+CallerIDName: User1
+ConnectedLineNum: 2222
+ConnectedLineName: <unknown>
+Language: en
+AccountCode: 
+Context: kamailio
+Exten: 2222
+Priority: 1
+Uniqueid: 1688119030.328184
+Linkedid: 1688119030.328184
+
+Event: Hangup
+Privilege: call,all
+Channel: PJSIP/sip1-0000afcc
+ChannelState: 6
+ChannelStateDesc: Up
+CallerIDNum: 1111
+CallerIDName: User1
+ConnectedLineNum: 2222
+ConnectedLineName: <unknown>
+Language: en
+AccountCode: 
+Context: kamailio
+Exten: 2222
+Priority: 1
+Uniqueid: 1688119030.328184
+Linkedid: 1688119030.328184
+Cause: 16
+Cause-txt: Normal Clearing
+

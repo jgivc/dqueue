@@ -6,6 +6,7 @@ require (
 	github.com/go-kit/log v0.2.1
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.4
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (

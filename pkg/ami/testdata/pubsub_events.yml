@@ -1,0 +1,42 @@
+- host: "1.1.1.1"
+  name: Newchannel
+  channel: channel_one
+  calleridnum: 3333
+  data:
+    aaa: one1
+- host: "1.1.1.1"
+  name: Newchannel
+  channel: channel_one
+  calleridnum: 2222
+  data:
+    aaa: one2
+- host: "1.1.1.1"
+  name: Newchannel
+  channel: channel_one
+  calleridnum: 3333
+  data:
+    aaa: one3
+- host: "1.1.1.1"
+  name: Newchannel
+  channel: channel_one
+  calleridnum: 4444
+  data:
+    aaa: one4
+- host: "1.1.1.1"
+  name: Newchannel
+  channel: channel_one
+  calleridnum: 5555
+  data:
+    aaa: one5
+- host: "1.1.1.1"
+  name: Newchannel
+  channel: channel_one
+  calleridnum: 3333
+  data:
+    aaa: one6
+- host: "1.1.1.1"
+  name: Newchannel
+  channel: channel_one
+  calleridnum: 2222
+  data:
+    aaa: one7
