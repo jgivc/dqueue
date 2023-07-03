@@ -82,7 +82,7 @@ func (ps *pubSub) Close() {
 	close(ps.ch)
 }
 
-func NewPubSub(cfg *config.PubSubConfig, logger logger.Logger) PubSub { //nolint: gocognit // shut up!
+func NewPubSub(cfg *config.PubSubConfig, logger logger.Logger) PubSub {
 	ps := &pubSub{
 		ch:            make(chan *Event, cfg.PublishQueueSize),
 		stop:          make(chan struct{}),
@@ -120,6 +120,7 @@ func NewPubSub(cfg *config.PubSubConfig, logger logger.Logger) PubSub { //nolint
 					if sub.filter(e) {
 						select {
 						case sub.ch <- e.Copy():
+							// logger.Info("msg", "Send", "p", fmt.Sprintf("%p", sub))
 						default:
 							logger.Warn("msg", "Cannot send event to subscriber")
 						}

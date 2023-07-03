@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	pubsubEventsFile  = "testdata/pubsub_events.yml"
-	filterCallerIDNum = "3333"
+	pubsubEventsFile        = "testdata/pubsub_events.yml"
+	filterCallerIDNum       = "3333"
+	unsubscribeCaptureCount = 2
 )
 
 type PubSubTestSuite struct {
@@ -38,6 +39,7 @@ func (s *PubSubTestSuite) SetupSuite() {
 	s.ps = ami.NewPubSub(&config.PubSubConfig{
 		PublishQueueSize:    10,
 		SubscriberQueueSize: 10,
+		// }, logger.New())
 	}, &mocks.LoggerMock{})
 }
 
@@ -101,6 +103,69 @@ func (s *PubSubTestSuite) TestSubscribe() {
 		}
 	}
 	s.Assert().ElementsMatch(expectedOutFiltered, outFiltered)
+}
+
+func (s *PubSubTestSuite) TestUnsubscribe() {
+	out := make([]*ami.Event, 0)
+	out2 := make([]*ami.Event, 0)
+	var wg sync.WaitGroup
+
+	s.T().Run("group", func(t *testing.T) {
+		subs := s.ps.Subscribe(func(e *ami.Event) bool {
+			return true
+		})
+
+		subs2 := s.ps.Subscribe(func(e *ami.Event) bool {
+			return true
+		})
+
+		wait := make(chan struct{})
+
+		wg.Add(1)
+		t.Run("subscribe", func(t *testing.T) {
+			t.Parallel()
+			defer wg.Done()
+			defer subs.Close()
+
+			for e := range subs.Events() {
+				out = append(out, e)
+				if len(out) == len(s.events) {
+					return
+				}
+			}
+		})
+
+		wg.Add(1)
+		t.Run("unsubscribe", func(t *testing.T) {
+			t.Parallel()
+			defer wg.Done()
+
+			for e := range subs2.Events() {
+				out2 = append(out2, e)
+				if len(out2) == unsubscribeCaptureCount {
+					subs2.Close()
+					close(wait)
+				}
+			}
+		})
+
+		wg.Add(1)
+		t.Run("publish", func(t *testing.T) {
+			t.Parallel()
+			defer wg.Done()
+
+			for i := range s.events {
+				s.ps.Publish(s.events[i])
+				if i == unsubscribeCaptureCount-1 {
+					<-wait
+				}
+			}
+		})
+	})
+
+	wg.Wait()
+	s.Assert().ElementsMatch(s.events, out)
+	s.Assert().ElementsMatch(s.events[:unsubscribeCaptureCount], out2)
 }
 
 func (s *PubSubTestSuite) TearDownSuite() {
