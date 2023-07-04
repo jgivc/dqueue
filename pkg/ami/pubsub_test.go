@@ -1,4 +1,4 @@
-package ami_test
+package ami
 
 import (
 	"os"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/service/mocks"
-	"github.com/jgivc/vapp/pkg/ami"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v2"
 )
@@ -20,8 +19,8 @@ const (
 
 type PubSubTestSuite struct {
 	suite.Suite
-	ps     ami.PubSub
-	events []*ami.Event
+	ps     *pubSub
+	events []*Event
 }
 
 func (s *PubSubTestSuite) SetupSuite() {
@@ -36,7 +35,7 @@ func (s *PubSubTestSuite) SetupSuite() {
 		s.Require().NoError(err)
 	}
 
-	s.ps = ami.NewPubSub(&config.PubSubConfig{
+	s.ps = newPubSub(&config.PubSubConfig{
 		PublishQueueSize:    10,
 		SubscriberQueueSize: 10,
 		// }, logger.New())
@@ -44,16 +43,16 @@ func (s *PubSubTestSuite) SetupSuite() {
 }
 
 func (s *PubSubTestSuite) TestSubscribe() {
-	out := make([]*ami.Event, 0)
-	outFiltered := make([]*ami.Event, 0)
+	out := make([]*Event, 0)
+	outFiltered := make([]*Event, 0)
 	var wg sync.WaitGroup
 
 	s.T().Run("group", func(t *testing.T) {
-		subs := s.ps.Subscribe(func(e *ami.Event) bool {
+		subs := s.ps.Subscribe(func(e *Event) bool {
 			return true
 		})
 
-		subsFiltered := s.ps.Subscribe(func(e *ami.Event) bool {
+		subsFiltered := s.ps.Subscribe(func(e *Event) bool {
 			return e.CallerIDNum == filterCallerIDNum
 		})
 
@@ -96,7 +95,7 @@ func (s *PubSubTestSuite) TestSubscribe() {
 	wg.Wait()
 	s.Assert().ElementsMatch(s.events, out)
 
-	expectedOutFiltered := make([]*ami.Event, 0)
+	expectedOutFiltered := make([]*Event, 0)
 	for i, e := range s.events {
 		if e.CallerIDNum == filterCallerIDNum {
 			expectedOutFiltered = append(expectedOutFiltered, s.events[i])
@@ -106,16 +105,16 @@ func (s *PubSubTestSuite) TestSubscribe() {
 }
 
 func (s *PubSubTestSuite) TestUnsubscribe() {
-	out := make([]*ami.Event, 0)
-	out2 := make([]*ami.Event, 0)
+	out := make([]*Event, 0)
+	out2 := make([]*Event, 0)
 	var wg sync.WaitGroup
 
 	s.T().Run("group", func(t *testing.T) {
-		subs := s.ps.Subscribe(func(e *ami.Event) bool {
+		subs := s.ps.Subscribe(func(e *Event) bool {
 			return true
 		})
 
-		subs2 := s.ps.Subscribe(func(e *ami.Event) bool {
+		subs2 := s.ps.Subscribe(func(e *Event) bool {
 			return true
 		})
 

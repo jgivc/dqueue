@@ -14,11 +14,11 @@ type Subscriber interface {
 	Close()
 }
 
-type PubSub interface {
-	Subscribe(f Filter) Subscriber
-	Publish(e *Event)
-	Close()
-}
+// type PubSub interface {
+// 	Subscribe(f Filter) Subscriber
+// 	Publish(e *Event)
+// 	Close()
+// }
 
 type subscriber struct {
 	ch          chan *Event
@@ -82,7 +82,7 @@ func (ps *pubSub) Close() {
 	close(ps.ch)
 }
 
-func NewPubSub(cfg *config.PubSubConfig, logger logger.Logger) PubSub {
+func newPubSub(cfg *config.PubSubConfig, logger logger.Logger) *pubSub {
 	ps := &pubSub{
 		ch:            make(chan *Event, cfg.PublishQueueSize),
 		stop:          make(chan struct{}),

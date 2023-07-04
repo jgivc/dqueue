@@ -13,18 +13,18 @@ const (
 	keyCallerIDNum = "CallerIDNum"
 )
 
-type Reader struct {
+type amiReader struct {
 	r        *bufio.Reader
 	shutdown atomic.Bool
 }
 
-func (er *Reader) Close() error {
+func (er *amiReader) Close() error {
 	er.shutdown.Store(true)
 
 	return nil
 }
 
-func (er *Reader) Read() (Event, error) {
+func (er *amiReader) Read() (Event, error) {
 	var e Event
 
 	e.Data = make(map[string]string)
@@ -56,8 +56,8 @@ func (er *Reader) Read() (Event, error) {
 	return e, nil
 }
 
-func NewAmiReader(r io.Reader) *Reader {
-	return &Reader{
+func newAmiReader(r io.Reader) *amiReader {
+	return &amiReader{
 		r: bufio.NewReader(r),
 	}
 }

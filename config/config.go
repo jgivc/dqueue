@@ -24,6 +24,15 @@ type (
 		PublishQueueSize    uint `yaml:"publish_queue_size"`
 		SubscriberQueueSize uint `yaml:"subscriber_queue_size"`
 	}
+
+	AmiServer struct {
+		Host              string        `yaml:"host"`
+		Port              int           `yaml:"port"`
+		Username          string        `yaml:"username"`
+		Password          string        `yaml:"password"`
+		DialTimeout       time.Duration `yaml:"dial_timeout"`
+		ReconnectInterval time.Duration `yaml:"reconnect_interval"`
+	}
 )
 
 func New(fileName string) (*Config, error) {

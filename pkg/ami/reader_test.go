@@ -1,11 +1,10 @@
-package ami_test
+package ami
 
 import (
 	"io"
 	"os"
 	"testing"
 
-	"github.com/jgivc/vapp/pkg/ami"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v2"
 )
@@ -17,7 +16,7 @@ const (
 
 type AmiReaderTestSuite struct {
 	suite.Suite
-	expected []ami.Event
+	expected []Event
 }
 
 func (s *AmiReaderTestSuite) SetupSuite() {
@@ -40,10 +39,10 @@ func (s *AmiReaderTestSuite) TestAmiReader() {
 	}
 	defer file.Close()
 
-	ar := ami.NewAmiReader(file)
+	ar := newAmiReader(file)
 	defer ar.Close()
 
-	out := make([]ami.Event, 0)
+	out := make([]Event, 0)
 	for {
 		e, err2 := ar.Read()
 		if err2 != nil {
