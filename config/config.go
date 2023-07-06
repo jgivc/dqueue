@@ -31,6 +31,7 @@ type (
 		Username          string        `yaml:"username"`
 		Password          string        `yaml:"password"`
 		DialTimeout       time.Duration `yaml:"dial_timeout"`
+		ActionTimeout     time.Duration `yaml:"action_timeout"`
 		ReconnectInterval time.Duration `yaml:"reconnect_interval"`
 	}
 )

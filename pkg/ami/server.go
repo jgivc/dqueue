@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/pkg/logger"
 )
@@ -25,9 +26,8 @@ ActionID: <value>
 */
 
 const (
-	network   = "tcp"
-	reqLogin  = "Action: Login\r\nActionID: %d\r\nUsername: %s\r\nSecret: %s\r\n\r\n"
-	reqLogoff = "Action: Logoff\r\nActionID: %d\r\n\r\n"
+	reqLogin  = "Action: Login\r\nActionID: %s\r\nUsername: %s\r\nSecret: %s\r\n\r\n"
+	reqLogoff = "Action: Logoff\r\nActionID: %s\r\n\r\n"
 
 	stateReady = iota
 	stateDisconnect
@@ -70,7 +70,9 @@ type amiServerImpl struct {
 	conn     net.Conn
 	logger   logger.Logger
 	state    serverState
-	ps       pubSub
+	cf       connectionFactory
+	rf       readerFactory
+	ps       pubSubIf
 	shutdown atomic.Bool
 }
 
@@ -78,12 +80,119 @@ func (s *amiServerImpl) connect(ctx context.Context) (net.Conn, error) {
 	ctx2, cancel := context.WithTimeout(ctx, s.cfg.DialTimeout)
 	defer cancel()
 
-	var dialer net.Dialer
-	return dialer.DialContext(ctx2, network, s.addr)
+	// var dialer net.Dialer
+	// return dialer.DialContext(ctx2, network, s.addr)
+	return s.cf.Connect(ctx2, s.addr)
 }
 
-func (s *amiServerImpl) login(conn net.Conn) (*amiReader, error) {
-	panic("not implemented")
+func (s *amiServerImpl) getID() string {
+	return uuid.New().String()
+}
+
+func (s *amiServerImpl) login(ctx context.Context, conn net.Conn) (amiReaderIf, error) {
+	reader := s.rf.GetAmiReader(conn)
+	ctx2, cancel := context.WithTimeout(ctx, s.cfg.ActionTimeout)
+	defer cancel()
+
+	ch := make(chan *Event)
+	go func() {
+		defer close(ch)
+
+		for {
+			e, err := reader.Read()
+			if err != nil {
+				s.logger.Error("msg", "Cannot read event", "addr", s.addr, "error", err)
+				return
+			}
+			select {
+			case <-ctx2.Done():
+				return
+			case ch <- &e:
+			}
+		}
+	}()
+
+	id := s.getID()
+
+	var err error
+	if _, err = conn.Write([]byte(fmt.Sprintf(reqLogin, id, s.cfg.Username, s.cfg.Password))); err == nil {
+	out:
+		for {
+			select {
+			case <-ctx2.Done():
+				err = fmt.Errorf("cannot login, %w", ctx.Err())
+				break out
+			case e, ok := <-ch:
+				if ok {
+					if e.Name == keyResponse {
+						if e.Get(keyActionID) == id && e.Get(keyResponse) == success {
+							return reader, nil
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nil, err
+}
+
+func (s *amiServerImpl) logoff() {
+	if s.conn == nil {
+		return
+	}
+	id := s.getID()
+	sub := s.ps.Subscribe(func(e *Event) bool {
+		if e.Name == keyResponse {
+			if e.Get(keyActionID) == id && e.Get(keyResponse) == goodbye {
+				return true
+			}
+		}
+
+		return false
+	})
+	defer sub.Close()
+
+	if _, err := s.conn.Write([]byte(fmt.Sprintf(reqLogoff, id))); err != nil {
+		s.logger.Error("msg", "Cannot logoff from server", "addr", s.addr, "error", err)
+
+		return
+	}
+
+	select {
+	case <-time.After(s.cfg.ActionTimeout):
+		s.logger.Error("msg", "Cannot logoff from server", "addr", s.addr, "error", "timeout")
+		return
+	case <-sub.Events():
+		s.logger.Info("msg", "Logoff successful", "addr", s.addr)
+		break
+	}
+}
+
+func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
+	defer conn.Close()
+
+	reader, err := s.login(ctx, conn)
+	if err != nil {
+		s.logger.Error("msg", "Cannot login to server", "addr", s.addr, "error", err)
+		return
+	}
+	defer reader.Close()
+
+	s.logger.Info("msg", "Login to server successful", "addr", s.addr)
+	s.setState(stateReady)
+	s.logger.Info("msg", "Server ready", "addr", s.addr)
+
+	for !s.shutdown.Load() {
+		e, err2 := reader.Read()
+		if err2 != nil {
+			s.logger.Error("msg", "Cannot read on server", "addr", s.addr, "error", err2)
+			s.setState(stateDisconnect)
+			return
+		}
+
+		s.ps.Publish(&e)
+	}
 }
 
 func (s *amiServerImpl) Start(ctx context.Context) error {
@@ -101,48 +210,45 @@ func (s *amiServerImpl) Start(ctx context.Context) error {
 		s.shutdown.Store(true)
 	}()
 
+	start := make(chan struct{})
+
 	go func() {
-		for {
+		close(start)
+		s.logger.Info("msg", "Server loop started")
+
+		for !s.shutdown.Load() {
 			var (
-				err    error
-				conn   net.Conn
-				reader *amiReader
+				err  error
+				conn net.Conn
 			)
 
-			if conn, err = s.connect(ctx); err == nil {
-				reader, err = s.login(conn)
-			}
-			if err != nil {
-				s.logger.Error("msg", "Cannot connect to server", "addr", s.addr, "error", err)
-
-				select {
-				case <-ctx.Done():
-					s.logger.Info("msg", "Interrupt server reader", "addr", s.addr)
-					return
-				case <-time.After(s.cfg.ReconnectInterval):
-				}
-
-				continue
-			}
-
 			for !s.shutdown.Load() {
-				e, err2 := reader.Read()
-				if err2 != nil {
-					s.logger.Error("msg", "Cannot read on server", "addr", s.addr, "error", err2)
-					s.setState(stateDisconnect)
-					conn.Close()
-					break
+				if conn, err = s.connect(ctx); err != nil {
+					s.logger.Error("msg", "Cannot connect to server", "addr", s.addr, "error", err)
+					select {
+					case <-ctx.Done():
+						s.logger.Info("msg", "Interrupt server reader", "addr", s.addr)
+						return
+					case <-time.After(s.cfg.ReconnectInterval):
+					}
+
+					continue
 				}
 
-				s.ps.Publish(&e)
+				s.logger.Info("msg", "Connected to server", "addr", s.addr)
+				break
 			}
 
-			if s.shutdown.Load() {
-				return
+			if !s.shutdown.Load() {
+				s.conn = conn
+				s.serve(ctx, conn)
 			}
 		}
+
+		s.logoff()
 	}()
 
+	<-start
 	return nil
 }
 
@@ -174,19 +280,20 @@ func (s *amiServerImpl) Close() error {
 
 	s.state = stateShutdown
 	s.shutdown.Store(true)
-	if s.conn != nil {
-		return s.conn.Close()
-	}
+	// s.conn.Close in server method
 
 	return nil
 }
 
-func newAmiServer(cfg *config.AmiServer, ps pubSub, logger logger.Logger) amiServer {
+func newAmiServer(cfg *config.AmiServer, cf connectionFactory, rf readerFactory,
+	ps pubSubIf, logger logger.Logger) amiServer {
 	return &amiServerImpl{
 		addr:   fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		cfg:    cfg,
 		logger: logger,
 		state:  stateDisconnect,
 		ps:     ps,
+		cf:     cf,
+		rf:     rf,
 	}
 }

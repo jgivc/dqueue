@@ -7,13 +7,6 @@ import (
 	"github.com/jgivc/vapp/pkg/logger"
 )
 
-type Filter func(e *Event) bool
-
-type Subscriber interface {
-	Events() <-chan *Event
-	Close()
-}
-
 // type PubSub interface {
 // 	Subscribe(f Filter) Subscriber
 // 	Publish(e *Event)
