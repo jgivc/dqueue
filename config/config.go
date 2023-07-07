@@ -33,6 +33,7 @@ type (
 		DialTimeout       time.Duration `yaml:"dial_timeout"`
 		ActionTimeout     time.Duration `yaml:"action_timeout"`
 		ReconnectInterval time.Duration `yaml:"reconnect_interval"`
+		ReaderBuffer      uint
 	}
 )
 
