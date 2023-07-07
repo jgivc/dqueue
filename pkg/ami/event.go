@@ -1,5 +1,11 @@
 package ami
 
+import (
+	"bytes"
+	"fmt"
+	"io"
+)
+
 const (
 	emptyString = ""
 )
@@ -10,6 +16,26 @@ type Event struct {
 	Channel     string
 	CallerIDNum string
 	Data        map[string]string
+}
+
+func (e *Event) write(w io.Writer) error {
+	b := bytes.NewBuffer(nil)
+	b.WriteString(fmt.Sprintf("%s: %s\r\n", e.Name, e.Data[e.Name]))
+	for key, val := range e.Data {
+		if key == e.Name {
+			continue
+		}
+
+		b.WriteString(fmt.Sprintf("%s: %s\r\n", key, val))
+	}
+	b.WriteString("\r\n")
+
+	n, err := w.Write(b.Bytes())
+	if n != b.Len() {
+		return fmt.Errorf("not all data writen: expected: %d, actual: %d", b.Len(), n)
+	}
+
+	return err
 }
 
 func (e *Event) Get(key string) string {

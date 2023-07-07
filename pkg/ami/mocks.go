@@ -2,35 +2,34 @@ package ami
 
 import (
 	"context"
-	"io"
 	"net"
 	"time"
 
 	"github.com/stretchr/testify/mock"
 )
 
-type amiReaderMock struct {
-	mock.Mock
-}
+// type amiReaderMock struct {
+// 	mock.Mock
+// }
 
-func (m *amiReaderMock) Read() (Event, error) {
-	args := m.Called()
+// func (m *amiReaderMock) Read() (Event, error) {
+// 	args := m.Called()
 
-	var e Event
-	if a := args.Get(0); a != nil {
-		if e2, ok := a.(Event); ok {
-			return e2, nil
-		}
-	}
+// 	var e Event
+// 	if a := args.Get(0); a != nil {
+// 		if e2, ok := a.(Event); ok {
+// 			return e2, nil
+// 		}
+// 	}
 
-	return e, args.Error(1)
-}
+// 	return e, args.Error(1)
+// }
 
-func (m *amiReaderMock) Close() error {
-	args := m.Called()
+// func (m *amiReaderMock) Close() error {
+// 	args := m.Called()
 
-	return args.Error(0)
-}
+// 	return args.Error(0)
+// }
 
 type connectionMock struct {
 	mock.Mock
@@ -118,66 +117,66 @@ func (m *connectionFactoryMock) Connect(ctx context.Context, addr string) (net.C
 	return conn, args.Error(1)
 }
 
-type readerFactoryMock struct {
-	mock.Mock
-}
+// type readerFactoryMock struct {
+// 	mock.Mock
+// }
 
-func (m *readerFactoryMock) GetAmiReader(r io.Reader) amiReaderIf {
-	args := m.Called(r)
+// func (m *readerFactoryMock) GetAmiReader(r io.Reader) amiReaderIf {
+// 	args := m.Called(r)
 
-	var reader amiReaderIf
+// 	var reader amiReaderIf
 
-	if a := args.Get(0); a != nil {
-		if r2, ok := a.(amiReaderIf); ok {
-			return r2
-		}
-	}
+// 	if a := args.Get(0); a != nil {
+// 		if r2, ok := a.(amiReaderIf); ok {
+// 			return r2
+// 		}
+// 	}
 
-	return reader
-}
+// 	return reader
+// }
 
-type pubSubMock struct {
-	mock.Mock
-}
+// type pubSubMock struct {
+// 	mock.Mock
+// }
 
-func (m *pubSubMock) Subscribe(f Filter) Subscriber {
-	args := m.Called(f)
+// func (m *pubSubMock) Subscribe(f Filter) Subscriber {
+// 	args := m.Called(f)
 
-	var s Subscriber
-	if a := args.Get(0); a != nil {
-		if s2, ok := a.(Subscriber); ok {
-			return s2
-		}
-	}
+// 	var s Subscriber
+// 	if a := args.Get(0); a != nil {
+// 		if s2, ok := a.(Subscriber); ok {
+// 			return s2
+// 		}
+// 	}
 
-	return s
-}
+// 	return s
+// }
 
-func (m *pubSubMock) Publish(e *Event) {
-	m.Called(e)
-}
+// func (m *pubSubMock) Publish(e *Event) {
+// 	m.Called(e)
+// }
 
-func (m *pubSubMock) Close() {
-	m.Called()
-}
+// func (m *pubSubMock) Close() {
+// 	m.Called()
+// }
 
-type subscriberMock struct {
-	mock.Mock
-}
+// type subscriberMock struct {
+// 	mock.Mock
+// }
 
-func (m *subscriberMock) Events() <-chan *Event {
-	args := m.Called()
+// func (m *subscriberMock) Events() <-chan *Event {
+// 	args := m.Called()
 
-	var ch <-chan *Event
-	if a := args.Get(0); a != nil {
-		if ch2, ok := a.(chan *Event); ok {
-			return ch2
-		}
-	}
+// 	var ch <-chan *Event
+// 	if a := args.Get(0); a != nil {
+// 		if ch2, ok := a.(chan *Event); ok {
+// 			return ch2
+// 		}
+// 	}
 
-	return ch
-}
+// 	return ch
+// }
 
-func (m *subscriberMock) Close() {
-	m.Called()
-}
+// func (m *subscriberMock) Close() {
+// 	m.Called()
+// }

@@ -15,6 +15,7 @@ import (
 
 type subscriber struct {
 	ch          chan *Event
+	stop        chan struct{}
 	filter      Filter
 	unsubscribe chan *subscriber
 }
@@ -24,8 +25,15 @@ func (s *subscriber) Events() <-chan *Event {
 }
 
 func (s *subscriber) Close() {
-	defer close(s.ch)
+	select {
+	case _, ok := <-s.stop:
+		if !ok {
+			return
+		}
+	default:
+	}
 
+	defer close(s.ch)
 	s.unsubscribe <- s
 }
 
@@ -41,6 +49,7 @@ type pubSub struct {
 func (ps *pubSub) Subscribe(f Filter) Subscriber {
 	subs := &subscriber{
 		ch:          make(chan *Event, ps.subsQueueSize),
+		stop:        ps.stop,
 		filter:      f,
 		unsubscribe: ps.unsubscribe,
 	}

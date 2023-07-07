@@ -2,7 +2,6 @@ package ami
 
 import (
 	"context"
-	"io"
 	"net"
 )
 
@@ -23,13 +22,13 @@ func newConnectionFactory() *cf {
 	return &cf{}
 }
 
-type rf struct {
-}
+// type rf struct {
+// }
 
-func (f *rf) GetAmiReader(r io.Reader) amiReaderIf {
-	return newAmiReader(r)
-}
+// func (f *rf) GetAmiReader(r io.Reader) amiReaderIf {
+// 	return newAmiReader(r)
+// }
 
-func newReaderFactory() *rf {
-	return &rf{}
-}
+// func newReaderFactory() *rf {
+// 	return &rf{}
+// }

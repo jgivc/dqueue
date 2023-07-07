@@ -7,7 +7,6 @@ import (
 	"io"
 	"net"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,7 +25,7 @@ ActionID: <value>
 */
 
 const (
-	reqLogin  = "Action: Login\r\nActionID: %s\r\nUsername: %s\r\nSecret: %s\r\n\r\n"
+	reqLogin  = "Action: Login\r\nActionID: %s\r\nUsername: %s\r\nPassword: %s\r\n\r\n"
 	reqLogoff = "Action: Logoff\r\nActionID: %s\r\n\r\n"
 
 	stateReady = iota
@@ -64,24 +63,21 @@ type amiServer interface {
 }
 
 type amiServerImpl struct {
-	mux      sync.Mutex // Protect writer against simultaneous use
-	addr     string
-	cfg      *config.AmiServer
-	conn     net.Conn
-	logger   logger.Logger
-	state    serverState
-	cf       connectionFactory
-	rf       readerFactory
-	ps       pubSubIf
-	shutdown atomic.Bool
+	mux    sync.Mutex // Protect writer against simultaneous use
+	addr   string
+	cfg    *config.AmiServer
+	conn   net.Conn
+	logger logger.Logger
+	state  serverState
+	cf     connectionFactory
+	ps     pubSubIf
+	stop   chan struct{}
 }
 
 func (s *amiServerImpl) connect(ctx context.Context) (net.Conn, error) {
 	ctx2, cancel := context.WithTimeout(ctx, s.cfg.DialTimeout)
 	defer cancel()
 
-	// var dialer net.Dialer
-	// return dialer.DialContext(ctx2, network, s.addr)
 	return s.cf.Connect(ctx2, s.addr)
 }
 
@@ -89,69 +85,43 @@ func (s *amiServerImpl) getID() string {
 	return uuid.New().String()
 }
 
-func (s *amiServerImpl) login(ctx context.Context, conn net.Conn) (amiReaderIf, error) {
-	reader := s.rf.GetAmiReader(conn)
-	ctx2, cancel := context.WithTimeout(ctx, s.cfg.ActionTimeout)
+func (s *amiServerImpl) login(ch chan *Event) error {
+	ctx2, cancel := context.WithTimeout(context.Background(), s.cfg.ActionTimeout)
 	defer cancel()
-
-	ch := make(chan *Event)
-	go func() {
-		defer close(ch)
-
-		for {
-			e, err := reader.Read()
-			if err != nil {
-				s.logger.Error("msg", "Cannot read event", "addr", s.addr, "error", err)
-				return
-			}
-			select {
-			case <-ctx2.Done():
-				return
-			case ch <- &e:
-			}
-		}
-	}()
 
 	id := s.getID()
 
 	var err error
-	if _, err = conn.Write([]byte(fmt.Sprintf(reqLogin, id, s.cfg.Username, s.cfg.Password))); err == nil {
-	out:
-		for {
-			select {
-			case <-ctx2.Done():
-				err = fmt.Errorf("cannot login, %w", ctx.Err())
-				break out
-			case e, ok := <-ch:
-				if ok {
-					if e.Name == keyResponse {
-						if e.Get(keyActionID) == id && e.Get(keyResponse) == success {
-							return reader, nil
-						}
+	_, err = s.conn.Write([]byte(fmt.Sprintf(reqLogin, id, s.cfg.Username, s.cfg.Password)))
+	if err != nil {
+		return fmt.Errorf("cannot send to server: %w", err)
+	}
+
+out:
+	for {
+		select {
+		case <-ctx2.Done():
+			err = fmt.Errorf("cannot login, %w", ctx2.Err())
+			break out
+		case e, ok := <-ch:
+			if ok {
+				if e.Name == keyResponse {
+					if e.Get(keyActionID) == id && e.Get(keyResponse) == success {
+						return nil
 					}
 				}
 			}
 		}
 	}
 
-	return nil, err
+	return err
 }
 
-func (s *amiServerImpl) logoff() {
-	if s.conn == nil {
-		return
-	}
+func (s *amiServerImpl) logoff(ch chan *Event) {
 	id := s.getID()
-	sub := s.ps.Subscribe(func(e *Event) bool {
-		if e.Name == keyResponse {
-			if e.Get(keyActionID) == id && e.Get(keyResponse) == goodbye {
-				return true
-			}
-		}
 
-		return false
-	})
-	defer sub.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.ActionTimeout)
+	defer cancel()
 
 	if _, err := s.conn.Write([]byte(fmt.Sprintf(reqLogoff, id))); err != nil {
 		s.logger.Error("msg", "Cannot logoff from server", "addr", s.addr, "error", err)
@@ -159,39 +129,79 @@ func (s *amiServerImpl) logoff() {
 		return
 	}
 
-	select {
-	case <-time.After(s.cfg.ActionTimeout):
-		s.logger.Error("msg", "Cannot logoff from server", "addr", s.addr, "error", "timeout")
-		return
-	case <-sub.Events():
-		s.logger.Info("msg", "Logoff successful", "addr", s.addr)
-		break
+	for {
+		select {
+		case <-ctx.Done():
+			s.logger.Error("msg", "Cannot logoff from server", "addr", s.addr, "error", ctx.Err())
+			return
+		case e, ok := <-ch:
+			if ok {
+				if e.Name == keyResponse {
+					if e.Get(keyActionID) == id && e.Get(keyResponse) == goodbye {
+						s.logger.Info("msg", "Logoff successful", "addr", s.addr)
+						return
+					}
+				}
+			}
+		}
 	}
 }
 
 func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
 	defer conn.Close()
 
-	reader, err := s.login(ctx, conn)
-	if err != nil {
+	reader := newAmiReader(conn)
+	defer reader.Close()
+
+	var i int
+	ch := make(chan *Event, s.cfg.ReaderBuffer)
+	go func() {
+		defer close(ch)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-s.stop:
+				fmt.Println("IIIIIIIIIIIII: ", i)
+				return
+			default:
+				e, err2 := reader.Read()
+				i++
+				if err2 != nil {
+					s.logger.Error("msg", "Cannot read on server", "addr", s.addr, "error", err2)
+					s.setState(stateDisconnect)
+					return
+				}
+
+				ch <- &e
+			}
+		}
+	}()
+
+	if err := s.login(ch); err != nil {
 		s.logger.Error("msg", "Cannot login to server", "addr", s.addr, "error", err)
+
 		return
 	}
-	defer reader.Close()
 
 	s.logger.Info("msg", "Login to server successful", "addr", s.addr)
 	s.setState(stateReady)
 	s.logger.Info("msg", "Server ready", "addr", s.addr)
 
-	for !s.shutdown.Load() {
-		e, err2 := reader.Read()
-		if err2 != nil {
-			s.logger.Error("msg", "Cannot read on server", "addr", s.addr, "error", err2)
-			s.setState(stateDisconnect)
+	var j int
+	for {
+		select {
+		case <-ctx.Done():
+			s.logoff(ch)
 			return
+		case <-s.stop:
+			fmt.Println("JJJJJJJJJJJJJJ: ", j)
+			s.logoff(ch)
+			return
+		case e := <-ch:
+			j++
+			s.ps.Publish(e)
 		}
-
-		s.ps.Publish(&e)
 	}
 }
 
@@ -204,48 +214,55 @@ func (s *amiServerImpl) Start(ctx context.Context) error {
 	}
 
 	s.state = stateDisconnect
-
-	go func() {
-		<-ctx.Done()
-		s.shutdown.Store(true)
-	}()
-
 	start := make(chan struct{})
 
 	go func() {
 		close(start)
 		s.logger.Info("msg", "Server loop started")
 
-		for !s.shutdown.Load() {
+		defer s.setState(stateDisconnect)
+
+		for {
 			var (
 				err  error
 				conn net.Conn
 			)
 
-			for !s.shutdown.Load() {
-				if conn, err = s.connect(ctx); err != nil {
-					s.logger.Error("msg", "Cannot connect to server", "addr", s.addr, "error", err)
-					select {
-					case <-ctx.Done():
-						s.logger.Info("msg", "Interrupt server reader", "addr", s.addr)
-						return
-					case <-time.After(s.cfg.ReconnectInterval):
+		out:
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-s.stop:
+					return
+				default:
+					if conn, err = s.connect(ctx); err != nil {
+						s.logger.Error("msg", "Cannot connect to server", "addr", s.addr, "error", err)
+						select {
+						case <-ctx.Done():
+							s.logger.Info("msg", "Interrupt server reader", "addr", s.addr)
+							return
+						case <-time.After(s.cfg.ReconnectInterval):
+						}
+
+						continue
 					}
 
-					continue
+					s.logger.Info("msg", "Connected to server", "addr", s.addr)
+					break out
 				}
-
-				s.logger.Info("msg", "Connected to server", "addr", s.addr)
-				break
 			}
 
-			if !s.shutdown.Load() {
+			select {
+			case <-ctx.Done():
+				return
+			case <-s.stop:
+				return
+			default:
 				s.conn = conn
 				s.serve(ctx, conn)
 			}
 		}
-
-		s.logoff()
 	}()
 
 	<-start
@@ -274,18 +291,22 @@ func (s *amiServerImpl) Close() error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	if s.state == stateShutdown {
-		return fmt.Errorf("%w already shutdown", errAmiServer)
+	select {
+	case _, ok := <-s.stop:
+		if !ok {
+			return fmt.Errorf("%w already shutdown", errAmiServer)
+		}
+	default:
 	}
 
 	s.state = stateShutdown
-	s.shutdown.Store(true)
-	// s.conn.Close in server method
+	close(s.stop)
+	// s.conn.Close in serve method
 
 	return nil
 }
 
-func newAmiServer(cfg *config.AmiServer, cf connectionFactory, rf readerFactory,
+func newAmiServer(cfg *config.AmiServer, cf connectionFactory,
 	ps pubSubIf, logger logger.Logger) amiServer {
 	return &amiServerImpl{
 		addr:   fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
@@ -294,6 +315,6 @@ func newAmiServer(cfg *config.AmiServer, cf connectionFactory, rf readerFactory,
 		state:  stateDisconnect,
 		ps:     ps,
 		cf:     cf,
-		rf:     rf,
+		stop:   make(chan struct{}),
 	}
 }

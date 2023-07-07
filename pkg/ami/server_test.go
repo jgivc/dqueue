@@ -1,198 +1,112 @@
 package ami
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
-	"regexp"
+	"strconv"
 	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
-	"github.com/google/uuid"
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/service/mocks"
 	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
 var (
-	errServerTest   = errors.New("server test error")
-	endOfLineRegexp = regexp.MustCompile(`:?\s+`)
+	errServerTest = errors.New("server test error")
 )
 
 type AmiServerTestSuite struct {
 	suite.Suite
-	srv        amiServer
-	cfg        *config.AmiServer
-	connMock   *connectionMock
-	readerMock *amiReaderMock
-	subsMock   *subscriberMock
-	cf         *connectionFactoryMock
-	rf         *readerFactoryMock
-	ps         *pubSubMock
-	// logger     *mocks.LoggerMock
-	logger logger.Logger
+	srv      amiServer
+	cfg      *config.AmiServer
+	connMock *connectionMock
+	cf       *connectionFactoryMock
+	logger   logger.Logger
 }
 
 func (s *AmiServerTestSuite) SetupTest() {
 	s.connMock = new(connectionMock)
-	s.readerMock = new(amiReaderMock)
-	s.subsMock = new(subscriberMock)
 	s.cf = new(connectionFactoryMock)
-	s.rf = new(readerFactoryMock)
 	s.cfg = &config.AmiServer{}
-	s.ps = new(pubSubMock)
 
 	s.logger = new(mocks.LoggerMock)
 	// s.logger = logger.New()
 }
 
-// func (s *AmiServerTestSuite) TestOne() {
-// 	s.cf.On("Connect", mock.Anything, mock.Anything).Return(nil, errServerTest)
-// 	s.srv = newAmiServer(s.cfg, s.cf, s.rf, s.ps, s.logger)
-// 	err := s.srv.Start(context.Background())
-// 	s.Require().NoError(err)
-// 	_, err = s.srv.Write([]byte("123"))
-// 	s.Assert().Error(err)
-// 	// s.srv.Close()
-
-// 	s.cf.AssertExpectations(s.T())
-// }
-
-// func (s *AmiServerTestSuite) TestTwo() {
-// 	s.cf.On("Connect", mock.Anything, mock.Anything).Return(nil, errServerTest)
-// 	s.srv = newAmiServer(s.cfg, s.cf, s.rf, s.ps, s.logger)
-// 	ctx, cancel := context.WithCancel(context.Background())
-// 	cancel()
-// 	err := s.srv.Start(ctx)
-// 	s.Require().NoError(err)
-// 	_, err = s.srv.Write([]byte("123"))
-// 	s.Assert().Error(err)
-
-// 	s.cf.AssertExpectations(s.T())
-// }
-
-// func (s *AmiServerTestSuite) TestThree() {
-// 	s.cfg.ActionTimeout = 3 * time.Second
-
-// 	wait := make(chan struct{})
-// 	var once sync.Once
-// 	events := make(chan *Event, 1)
-
-// 	defer close(events)
-// 	start := make(chan struct{})
-
-// 	const (
-// 		stageLogin = iota
-// 		stagePublish
-// 		stageLogoff
-// 	)
-
-// 	stage := stageLogin
-
-// 	ids := make(chan string, 2)
-
-// 	s.connMock.On("Write", mock.Anything).Return(0, nil).Run(func(args mock.Arguments) {
-// 		b, _ := args.Get(0).([]byte)
-
-// 		data := endOfLineRegexp.Split(string(b), -1)
-// 		for i, s := range data {
-// 			if s == keyActionID {
-// 				ids <- data[i+1]
-// 				break
-// 			}
-// 		}
-
-// 		if strings.Contains(string(b), "Logoff") {
-// 			stage = stageLogoff
-
-// 			go func() {
-// 				close(start)
-// 				id := <-ids
-// 				events <- &Event{Name: keyResponse, Data: map[string]string{
-// 					keyResponse: goodbye, keyActionID: id,
-// 				}}
-// 			}()
-
-// 			<-start
-// 		}
-// 	})
-
-// 	s.connMock.On("Close").Return(nil).Once()
-
-// 	s.cf.On("Connect", mock.Anything, mock.Anything).Return(s.connMock, nil)
-
-// 	s.rf.On("GetAmiReader", mock.Anything).Return(s.readerMock).Run(func(args mock.Arguments) {
-// 		once.Do(func() {
-// 			close(wait)
-// 		})
-// 	})
-
-// 	rm := s.readerMock.On("Read").Return(nil)
-// 	rm.Run(func(args mock.Arguments) {
-// 		switch stage {
-// 		case stageLogin:
-// 			id := <-ids
-// 			rm.ReturnArguments = mock.Arguments{Event{Name: keyResponse, Data: map[string]string{
-// 				keyResponse: success, keyActionID: id,
-// 			}}, nil}
-// 			stage = stagePublish
-// 		default:
-// 			rm.ReturnArguments = mock.Arguments{Event{Name: "TestEvent", Data: map[string]string{
-// 				"TestEvent": "blahblah",
-// 			}}, nil}
-// 		}
-// 	})
-
-// 	s.readerMock.On("Close").Return(nil)
-
-// 	s.ps.On("Publish", mock.Anything)
-
-// 	s.subsMock.On("Events").Return(events).Once()
-// 	s.subsMock.On("Close").Once()
-
-// 	s.ps.On("Subscribe", mock.Anything).Return(s.subsMock)
-
-// 	s.srv = newAmiServer(s.cfg, s.cf, s.rf, s.ps, s.logger)
-// 	err := s.srv.Start(context.Background())
-// 	s.Require().NoError(err)
-
-// 	<-wait
-// 	time.Sleep(time.Second)
-// 	s.srv.Close()
-// 	<-start
-// 	time.Sleep(time.Second)
-
-// 	s.cf.AssertExpectations(s.T())
-// 	s.connMock.AssertExpectations(s.T())
-// 	s.readerMock.AssertExpectations(s.T())
-// 	s.ps.AssertExpectations(s.T())
-// 	s.subsMock.AssertExpectations(s.T())
-// }
-
-func (s *AmiServerTestSuite) TestFour() {
+func (s *AmiServerTestSuite) TestFife() { //nolint: gocognit
 	srv, cln := net.Pipe()
-	reader := make(chan *Event)
+	chSrvReader := make(chan *Event)
+	_, closedCln := net.Pipe()
+	closedCln.Close()
+
+	s.cf.On("Connect",
+		mock.AnythingOfType("*context.timerCtx"),
+		mock.AnythingOfType("string")).Return(nil, errServerTest).Once()
+	s.cf.On("Connect",
+		mock.AnythingOfType("*context.timerCtx"),
+		mock.AnythingOfType("string")).Return(closedCln, nil).Twice()
+	s.cf.On("Connect", mock.AnythingOfType("*context.timerCtx"), mock.AnythingOfType("string")).Return(cln, nil).Once()
+
+	ps := newPubSub(&config.PubSubConfig{PublishQueueSize: 100, SubscriberQueueSize: 2}, s.logger)
+
+	cfg := &config.AmiServer{
+		Username:          "admin123",
+		Password:          "p@ssw0rd!23",
+		DialTimeout:       time.Second,
+		ActionTimeout:     time.Second,
+		ReconnectInterval: 100 * time.Millisecond,
+		ReaderBuffer:      100,
+	}
+
 	var wg sync.WaitGroup
+	eventsSend := make([]*Event, 0)
+	eventsRecv := make([]*Event, 0)
+	var running atomic.Bool
+
+	s.srv = newAmiServer(cfg, s.cf, ps, s.logger)
 
 	s.T().Run("group", func(t *testing.T) {
+		wg.Add(1)
+		t.Run("subscriber", func(t *testing.T) {
+			t.Parallel()
+
+			defer wg.Done()
+			subs := ps.Subscribe(func(e *Event) bool {
+				return true
+			})
+			defer subs.Close()
+
+			for e := range subs.Events() {
+				eventsRecv = append(eventsRecv, e)
+			}
+		})
+
 		wg.Add(1)
 		t.Run("server_reader", func(t *testing.T) {
 			t.Parallel()
 
-			defer wg.Done()
 			ar := newAmiReader(srv)
-			defer ar.Close()
-			defer close(reader)
+			defer func() {
+				close(chSrvReader)
+				ar.Close()
+				ps.Close()
+				wg.Done()
+			}()
 
 			for {
 				e, err := ar.Read()
 				if err != nil {
-					fmt.Println("Return", err)
 					return
 				}
 
-				reader <- &e
+				chSrvReader <- &e
 			}
 		})
 
@@ -203,21 +117,43 @@ func (s *AmiServerTestSuite) TestFour() {
 			defer wg.Done()
 			for i := 0; ; i++ {
 				select {
-				case e, ok := <-reader:
+				case e, ok := <-chSrvReader:
 					if !ok {
 						return
 					}
-					if e.Name == "Action" {
-						if e.Get("Action") == "Login" {
-							srv.Write([]byte(fmt.Sprintf("Response: Success\r\nActionID: %s\r\n\r\n", e.Get(keyActionID))))
-						} else if e.Get("Action") == "Logoff" {
-							srv.Write([]byte(fmt.Sprintf("Response: Goodbye\r\nActionID: %s\r\n\r\n", e.Get(keyActionID))))
-						}
+
+					if e.Get("Action") == "Login" {
+						s.Assert().Equal(e.Get(keyUsername), cfg.Username, "Username mismatch")
+						s.Assert().Equal(e.Get(keyPassword), cfg.Password, "Password mismatch")
+
+						_, err := srv.Write([]byte(fmt.Sprintf("Response: Success\r\nActionID: %s\r\n\r\n", e.Get(keyActionID))))
+						s.Assert().NoError(err)
+						running.Store(true)
+					} else if e.Get("Action") == "Logoff" {
+						_, err := srv.Write([]byte(fmt.Sprintf("Response: Goodbye\r\nActionID: %s\r\n\r\n", e.Get(keyActionID))))
+						s.Assert().NoError(err)
 					}
 				default:
-					srv.Write([]byte(fmt.Sprintf("Event: TestEvent\r\nChannel: testchan\r\nCallerIDNum: %d\r\n\r\n", i)))
+					if running.Load() {
+						channel := fmt.Sprintf("testchan%d", i)
+						clid := strconv.Itoa(i)
+						ev := &Event{
+							Name:        keyEvent,
+							Channel:     channel,
+							CallerIDNum: clid,
+							Data: map[string]string{
+								keyEvent:       "TestEvent",
+								keyChannel:     channel,
+								keyCallerIDNum: clid,
+							},
+						}
+
+						err := ev.write(srv)
+						s.Assert().NoError(err)
+						eventsSend = append(eventsSend, ev)
+					}
 				}
-				// time.Sleep(200 * time.Millisecond)
+				// time.Sleep(2 * time.Microsecond)
 			}
 		})
 
@@ -225,41 +161,35 @@ func (s *AmiServerTestSuite) TestFour() {
 		t.Run("client", func(t *testing.T) {
 			t.Parallel()
 
-			ar := newAmiReader(cln)
+			defer wg.Done()
 
-			defer func() {
-				srv.Close()
-				cln.Close()
-				ar.Close()
-				wg.Done()
-			}()
+			err := s.srv.Start(context.Background())
+			s.Require().NoError(err)
 
-			cln.Write([]byte(fmt.Sprintf("Action: Login\r\nActionID: %s\r\n\r\n", uuid.New().String())))
-
-			for i := 0; i < 5; i++ {
-				e, err := ar.Read()
-				if err != nil {
-					return
-				}
-				fmt.Println(e)
-			}
-
-			cln.Write([]byte(fmt.Sprintf("Action: Logoff\r\nActionID: %s\r\n\r\n", uuid.New().String())))
+			time.Sleep(3 * time.Second)
+			running.Store(false)
+			time.Sleep(100 * time.Millisecond)
+			err = s.srv.Close()
+			s.Require().NoError(err)
+			time.Sleep(100 * time.Millisecond)
 		})
 	})
 
 	wg.Wait()
+
+	_, err := cln.Write([]byte("123"))
+	s.Assert().ErrorContains(err, "closed")
+	s.cf.AssertExpectations(s.T())
+	s.Require().Equal(len(eventsSend), len(eventsRecv), "not all events receieved")
+	s.Assert().ElementsMatch(eventsSend, eventsRecv)
+	fmt.Println(len(eventsRecv))
 }
 
 func (s *AmiServerTestSuite) TearDownTest() {
 	s.connMock = nil
-	s.readerMock = nil
 	s.cf = nil
-	s.rf = nil
 	s.cfg = nil
-	s.ps = nil
 	s.logger = nil
-	// s.srv.Close()
 }
 
 func TestAmiServerTestSuite(t *testing.T) {

@@ -58,3 +58,11 @@ Linkedid: 1688119030.328184
 Cause: 16
 Cause-txt: Normal Clearing
 
+Response: Success
+ActionID: 111
+Message: Authentication accepted
+
+Response: Goodbye
+ActionID: 222
+Message: Thanks for all the fish.
+

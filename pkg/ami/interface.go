@@ -2,7 +2,6 @@ package ami
 
 import (
 	"context"
-	"io"
 	"net"
 )
 
@@ -20,16 +19,7 @@ type (
 		Close()
 	}
 
-	amiReaderIf interface {
-		Read() (Event, error)
-		Close() error
-	}
-
 	connectionFactory interface {
 		Connect(ctx context.Context, addr string) (net.Conn, error)
-	}
-
-	readerFactory interface {
-		GetAmiReader(r io.Reader) amiReaderIf
 	}
 )

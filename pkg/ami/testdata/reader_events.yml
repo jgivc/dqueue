@@ -1,5 +1,5 @@
 - host: ""
-  name: Newchannel
+  name: Event
   channel: PJSIP/kamailio-0000afcf
   calleridnum: <unknown>
   data:
@@ -19,7 +19,7 @@
     Privilege: call,all
     Uniqueid: "1688119039.328202"
 - host: ""
-  name: BridgeEnter
+  name: Event
   channel: PJSIP/sip1-0000afcc
   calleridnum: "1111"
   data:
@@ -46,7 +46,7 @@
     Privilege: call,all
     Uniqueid: "1688119030.328184"
 - host: ""
-  name: Hangup
+  name: Event
   channel: PJSIP/sip1-0000afcc
   calleridnum: "1111"
   data:
@@ -67,3 +67,15 @@
     Priority: "1"
     Privilege: call,all
     Uniqueid: "1688119030.328184"
+- host: ""
+  name: Response
+  data:
+    Response: "Success"
+    ActionID: "111"
+    Message: "Authentication accepted"
+- host: ""
+  name: Response
+  data:
+    Response: "Goodbye"
+    ActionID: "222"
+    Message: "Thanks for all the fish."
