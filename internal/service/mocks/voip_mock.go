@@ -40,3 +40,9 @@ func (m *VoipMock) Dial(ctx context.Context, client *entity.Client, operators ..
 
 	return args.Error(0)
 }
+
+func (m *VoipMock) Hangup(ctx context.Context, client *entity.Client) error {
+	args := m.Called(ctx, client)
+
+	return args.Error(0)
+}

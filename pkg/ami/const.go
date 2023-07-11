@@ -10,8 +10,15 @@ const (
 	keyChannel     = "Channel"
 	keyCause       = "Cause"
 	keyCallerIDNum = "CallerIDNum"
+	keyCommand     = "Command"
+	keyCommandID   = "CommandID"
+	keyResult      = "Result"
 
-	actionHangup = "Hangup"
+	agiCmdAnswer = "ANSWER"
+
+	actionAGI          = "AGI"
+	actionHangup       = "Hangup"
+	actionAsyncAGIExec = "AsyncAGIExec"
 
 	success = "Success"
 	goodbye = "Goodbye"

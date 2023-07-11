@@ -23,6 +23,7 @@ type (
 		StartMOH(ctx context.Context, client *entity.Client) error
 		StopMOH(ctx context.Context, client *entity.Client) error
 		Dial(ctx context.Context, client *entity.Client, operators ...entity.Operator) error
+		Hangup(ctx context.Context, client *entity.Client) error
 	}
 
 	ClientRepo interface {

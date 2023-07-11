@@ -1,6 +1,7 @@
 package ami
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -13,7 +14,18 @@ var (
 type Ami interface {
 	Subscribe(filter Filter) Subscriber
 
-	Hangup(host string, channel string, cause int) error
+	// Answer(ctx context.Context, client *entity.Client) error
+	// Playback(ctx context.Context, client *entity.Client, fileName string) error
+	// StartMOH(ctx context.Context, client *entity.Client) error
+	// StopMOH(ctx context.Context, client *entity.Client) error
+	// Dial(ctx context.Context, client *entity.Client, operators ...entity.Operator) error
+	// Hangup(ctx context.Context, client *entity.Client) error
+
+	Answer(ctx context.Context, host string, channel string) error
+	Playback(ctx context.Context, host string, channel string, fileName string) error
+	StartMOH(ctx context.Context, host string, channel string) error
+	StopMOH(ctx context.Context, host string, channel string) error
+	Hangup(ctx context.Context, host string, channel string, cause int) error
 }
 
 type ami struct {
