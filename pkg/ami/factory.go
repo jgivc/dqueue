@@ -21,14 +21,3 @@ func (f *cf) Connect(ctx context.Context, addr string) (net.Conn, error) {
 func newConnectionFactory() *cf {
 	return &cf{}
 }
-
-// type rf struct {
-// }
-
-// func (f *rf) GetAmiReader(r io.Reader) amiReaderIf {
-// 	return newAmiReader(r)
-// }
-
-// func newReaderFactory() *rf {
-// 	return &rf{}
-// }

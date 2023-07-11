@@ -162,7 +162,6 @@ func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
 			case <-ctx.Done():
 				return
 			case <-s.stop:
-				fmt.Println("IIIIIIIIIIIII: ", i)
 				return
 			default:
 				e, err2 := reader.Read()
@@ -195,7 +194,6 @@ func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
 			s.logoff(ch)
 			return
 		case <-s.stop:
-			fmt.Println("JJJJJJJJJJJJJJ: ", j)
 			s.logoff(ch)
 			return
 		case e := <-ch:

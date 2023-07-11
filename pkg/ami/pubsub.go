@@ -2,6 +2,7 @@ package ami
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/pkg/logger"
@@ -39,6 +40,7 @@ func (s *subscriber) Close() {
 
 type pubSub struct {
 	ch            chan *Event
+	wg            sync.WaitGroup
 	stop          chan struct{}
 	subscribe     chan *subscriber
 	unsubscribe   chan *subscriber
@@ -67,6 +69,7 @@ func (ps *pubSub) Close() {
 	close(ps.stop)
 	close(ps.subscribe)
 	close(ps.unsubscribe)
+	ps.wg.Wait()
 
 	for s := range ps.subscribers {
 		select {
@@ -97,8 +100,12 @@ func newPubSub(cfg *config.PubSubConfig, logger logger.Logger) *pubSub {
 	start := make(chan struct{})
 	defer close(start)
 
+	ps.wg.Add(1)
 	go func() {
-		defer logger.Info("msg", "PubSub done")
+		defer func() {
+			ps.wg.Done()
+			logger.Info("msg", "PubSub done")
+		}()
 
 		logger.Info("msg", "PubSub start")
 		start <- struct{}{}

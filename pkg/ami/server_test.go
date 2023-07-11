@@ -54,7 +54,7 @@ func (s *AmiServerTestSuite) TestFife() { //nolint: gocognit
 		mock.AnythingOfType("string")).Return(closedCln, nil).Twice()
 	s.cf.On("Connect", mock.AnythingOfType("*context.timerCtx"), mock.AnythingOfType("string")).Return(cln, nil).Once()
 
-	ps := newPubSub(&config.PubSubConfig{PublishQueueSize: 100, SubscriberQueueSize: 2}, s.logger)
+	ps := newPubSub(&config.PubSubConfig{PublishQueueSize: 100, SubscriberQueueSize: 1000}, s.logger)
 
 	cfg := &config.AmiServer{
 		Username:          "admin123",
@@ -182,7 +182,6 @@ func (s *AmiServerTestSuite) TestFife() { //nolint: gocognit
 	s.cf.AssertExpectations(s.T())
 	s.Require().Equal(len(eventsSend), len(eventsRecv), "not all events receieved")
 	s.Assert().ElementsMatch(eventsSend, eventsRecv)
-	fmt.Println(len(eventsRecv))
 }
 
 func (s *AmiServerTestSuite) TearDownTest() {

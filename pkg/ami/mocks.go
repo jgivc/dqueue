@@ -31,6 +31,16 @@ import (
 // 	return args.Error(0)
 // }
 
+type writerMock struct {
+	mock.Mock
+}
+
+func (m *writerMock) Write(p []byte) (int, error) {
+	args := m.Called(p)
+
+	return args.Int(0), args.Error(1)
+}
+
 type connectionMock struct {
 	mock.Mock
 }
