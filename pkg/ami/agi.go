@@ -66,7 +66,7 @@ func (h *agiActionHandler) handle(e *Event) {
 			h.stage = agiStageFail
 		}
 	case agiStageResponse:
-		if e.Name == actionAsyncAGIExec {
+		if e.Get(e.Name) == actionAsyncAGIExec {
 			var val string
 			val, err := url.QueryUnescape(e.Get(keyResult))
 			if err != nil {
@@ -101,8 +101,9 @@ func (h *agiActionHandler) result() (interface{}, error) {
 
 func newAgiActionHandler(req *actionRequest) *agiActionHandler {
 	return &agiActionHandler{
-		req: req,
-		ch:  make(chan struct{}),
+		req:   req,
+		ch:    make(chan struct{}),
+		stage: agiStageRequest,
 	}
 }
 
@@ -116,9 +117,42 @@ func newAgiAction(name string, timeout time.Duration) *defaultAction {
 }
 
 func (a *ami) Answer(ctx context.Context, host string, channel string) error {
-	ac := newAgiAction(actionAGI, a.actionTimeout)
+	ac := newAgiAction(actionAGI, a.cfg.ActionTimeout)
 	ac.addField(keyChannel, channel)
 	ac.addField(keyCommand, agiCmdAnswer)
+	ac.addField(keyCommandID, ac.req.id)
+
+	_, err := a.runAction(ctx, host, ac)
+
+	return err
+}
+
+func (a *ami) Playback(ctx context.Context, host string, channel string, fileName string) error {
+	ac := newAgiAction(actionAGI, a.cfg.ActionTimeout)
+	ac.addField(keyChannel, channel)
+	ac.addField(keyCommand, fmt.Sprintf("%s %s", agiCmdPlayback, fileName))
+	ac.addField(keyCommandID, ac.req.id)
+
+	_, err := a.runAction(ctx, host, ac)
+
+	return err
+}
+
+func (a *ami) StartMOH(ctx context.Context, host string, channel string) error {
+	ac := newAgiAction(actionAGI, a.cfg.ActionTimeout)
+	ac.addField(keyChannel, channel)
+	ac.addField(keyCommand, fmt.Sprintf("%s %s", agiCmdSetMusic, agiOn))
+	ac.addField(keyCommandID, ac.req.id)
+
+	_, err := a.runAction(ctx, host, ac)
+
+	return err
+}
+
+func (a *ami) StopMOH(ctx context.Context, host string, channel string) error {
+	ac := newAgiAction(actionAGI, a.cfg.ActionTimeout)
+	ac.addField(keyChannel, channel)
+	ac.addField(keyCommand, fmt.Sprintf("%s %s", agiCmdSetMusic, agiOff))
 	ac.addField(keyCommandID, ac.req.id)
 
 	_, err := a.runAction(ctx, host, ac)

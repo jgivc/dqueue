@@ -4,34 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
+
+	"github.com/jgivc/vapp/config"
+	"github.com/jgivc/vapp/pkg/logger"
 )
 
 var (
 	errAmiError = errors.New("ami error")
 )
 
-type Ami interface {
-	Subscribe(filter Filter) Subscriber
-
-	// Answer(ctx context.Context, client *entity.Client) error
-	// Playback(ctx context.Context, client *entity.Client, fileName string) error
-	// StartMOH(ctx context.Context, client *entity.Client) error
-	// StopMOH(ctx context.Context, client *entity.Client) error
-	// Dial(ctx context.Context, client *entity.Client, operators ...entity.Operator) error
-	// Hangup(ctx context.Context, client *entity.Client) error
-
-	Answer(ctx context.Context, host string, channel string) error
-	Playback(ctx context.Context, host string, channel string, fileName string) error
-	StartMOH(ctx context.Context, host string, channel string) error
-	StopMOH(ctx context.Context, host string, channel string) error
-	Hangup(ctx context.Context, host string, channel string, cause int) error
-}
-
 type ami struct {
-	actionTimeout time.Duration
-	servers       map[string]amiServer
-	ps            pubSubIf
+	cfg     *config.AmiConfig
+	servers map[string]amiServer
+	ps      pubSubIf
+	cf      connectionFactory
+	logger  logger.Logger
 }
 
 func (a *ami) getServer(host string) (amiServer, error) {
@@ -40,4 +27,52 @@ func (a *ami) getServer(host string) (amiServer, error) {
 	}
 
 	return nil, fmt.Errorf("%w: cannot find server %s", errAmiError, host)
+}
+
+func (a *ami) Subscribe(filter Filter) Subscriber {
+	return a.ps.Subscribe(filter)
+}
+
+func (a *ami) Close() error {
+	a.ps.Close()
+
+	hosts := make([]string, len(a.servers))
+	i := 0
+	for key := range a.servers {
+		hosts[i] = key
+		i++
+	}
+
+	for _, host := range hosts {
+		if err := a.servers[host].Close(); err != nil {
+			a.logger.Error("msg", "Cannot close server", "host", host, "error", err)
+		}
+		delete(a.servers, host)
+	}
+
+	return nil
+}
+
+func (a *ami) Start(ctx context.Context) error {
+	for i := range a.cfg.Servers {
+		cfg := a.cfg.Servers[i]
+		srv := newAmiServer(&cfg, a.cf, a.ps, a.logger)
+		if err := srv.Start(ctx); err != nil {
+			return fmt.Errorf("cannot connect to server %s:%d, %w", cfg.Host, cfg.Port, err)
+		}
+
+		a.servers[cfg.Host] = srv
+	}
+
+	return nil
+}
+
+func New(cfg *config.AmiConfig, cf connectionFactory, ps pubSubIf, logger logger.Logger) Ami {
+	return &ami{
+		cfg:     cfg,
+		servers: make(map[string]amiServer),
+		ps:      ps,
+		cf:      cf,
+		logger:  logger,
+	}
 }

@@ -167,7 +167,7 @@ func (a *ami) runAction(ctx context.Context, host string, ac action) (interface{
 }
 
 func (a *ami) Hangup(ctx context.Context, host string, channel string, cause int) error {
-	ac := newDefaultAction(actionHangup, a.actionTimeout)
+	ac := newDefaultAction(actionHangup, a.cfg.ActionTimeout)
 	ac.addField(keyChannel, channel)
 	ac.addField(keyCause, cause)
 

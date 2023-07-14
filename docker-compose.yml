@@ -1,0 +1,27 @@
+version: '3'
+services:
+  asterisk:
+    build: integration/asterisk
+    container_name: asterisk_t
+
+  integration:
+    build:
+      context: .
+      dockerfile: integration/app/Dockerfile
+    container_name: iapp_t
+    depends_on:
+      - asterisk
+    healthcheck:
+      # test: ["CMD", "pidof", "go"]
+      test: ["CMD-SHELL", "netstat -an | grep '5038[[:space:]]\\+ESTABLISHED'"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  sipp:
+    build: integration/sipp
+    container_name: sipp_t
+    command: asterisk -sf uac.xml -p 5061 -s 3000 -m 1 -inf accounts.csv
+    depends_on:
+      integration:
+        condition: service_healthy

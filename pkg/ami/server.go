@@ -25,7 +25,7 @@ ActionID: <value>
 */
 
 const (
-	reqLogin  = "Action: Login\r\nActionID: %s\r\nUsername: %s\r\nPassword: %s\r\n\r\n"
+	reqLogin  = "Action: Login\r\nActionID: %s\r\nUsername: %s\r\nSecret: %s\r\n\r\n"
 	reqLogoff = "Action: Logoff\r\nActionID: %s\r\n\r\n"
 
 	stateReady = iota
@@ -65,7 +65,7 @@ type amiServer interface {
 type amiServerImpl struct {
 	mux    sync.Mutex // Protect writer against simultaneous use
 	addr   string
-	cfg    *config.AmiServer
+	cfg    *config.AmiServerConfig
 	conn   net.Conn
 	logger logger.Logger
 	state  serverState
@@ -92,7 +92,7 @@ func (s *amiServerImpl) login(ch chan *Event) error {
 	id := s.getID()
 
 	var err error
-	_, err = s.conn.Write([]byte(fmt.Sprintf(reqLogin, id, s.cfg.Username, s.cfg.Password)))
+	_, err = s.conn.Write([]byte(fmt.Sprintf(reqLogin, id, s.cfg.Username, s.cfg.Secret)))
 	if err != nil {
 		return fmt.Errorf("cannot send to server: %w", err)
 	}
@@ -172,6 +172,7 @@ func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
 					return
 				}
 
+				e.Host = s.cfg.Host
 				ch <- &e
 			}
 		}
@@ -304,7 +305,7 @@ func (s *amiServerImpl) Close() error {
 	return nil
 }
 
-func newAmiServer(cfg *config.AmiServer, cf connectionFactory,
+func newAmiServer(cfg *config.AmiServerConfig, cf connectionFactory,
 	ps pubSubIf, logger logger.Logger) amiServer {
 	return &amiServerImpl{
 		addr:   fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),

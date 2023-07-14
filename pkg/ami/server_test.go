@@ -25,7 +25,7 @@ var (
 type AmiServerTestSuite struct {
 	suite.Suite
 	srv      amiServer
-	cfg      *config.AmiServer
+	cfg      *config.AmiServerConfig
 	connMock *connectionMock
 	cf       *connectionFactoryMock
 	logger   logger.Logger
@@ -34,7 +34,7 @@ type AmiServerTestSuite struct {
 func (s *AmiServerTestSuite) SetupTest() {
 	s.connMock = new(connectionMock)
 	s.cf = new(connectionFactoryMock)
-	s.cfg = &config.AmiServer{}
+	s.cfg = &config.AmiServerConfig{}
 
 	s.logger = new(mocks.LoggerMock)
 	// s.logger = logger.New()
@@ -56,9 +56,9 @@ func (s *AmiServerTestSuite) TestFife() { //nolint: gocognit
 
 	ps := newPubSub(&config.PubSubConfig{PublishQueueSize: 100, SubscriberQueueSize: 1000}, s.logger)
 
-	cfg := &config.AmiServer{
+	cfg := &config.AmiServerConfig{
 		Username:          "admin123",
-		Password:          "p@ssw0rd!23",
+		Secret:            "p@ssw0rd!23",
 		DialTimeout:       time.Second,
 		ActionTimeout:     time.Second,
 		ReconnectInterval: 100 * time.Millisecond,
@@ -124,7 +124,7 @@ func (s *AmiServerTestSuite) TestFife() { //nolint: gocognit
 
 					if e.Get("Action") == "Login" {
 						s.Assert().Equal(e.Get(keyUsername), cfg.Username, "Username mismatch")
-						s.Assert().Equal(e.Get(keyPassword), cfg.Password, "Password mismatch")
+						s.Assert().Equal(e.Get(keySecret), cfg.Secret, "Secret mismatch")
 
 						_, err := srv.Write([]byte(fmt.Sprintf("Response: Success\r\nActionID: %s\r\n\r\n", e.Get(keyActionID))))
 						s.Assert().NoError(err)

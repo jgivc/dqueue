@@ -25,17 +25,33 @@ type (
 		SubscriberQueueSize uint `yaml:"subscriber_queue_size"`
 	}
 
-	AmiServer struct {
+	AmiServerConfig struct {
 		Host              string        `yaml:"host"`
 		Port              int           `yaml:"port"`
 		Username          string        `yaml:"username"`
-		Password          string        `yaml:"password"`
-		DialTimeout       time.Duration `yaml:"dial_timeout"`
-		ActionTimeout     time.Duration `yaml:"action_timeout"`
-		ReconnectInterval time.Duration `yaml:"reconnect_interval"`
-		ReaderBuffer      uint
+		Secret            string        `yaml:"secret"`
+		DialTimeout       time.Duration `yaml:"-"`
+		ActionTimeout     time.Duration `yaml:"-"`
+		ReconnectInterval time.Duration `yaml:"-"`
+		ReaderBuffer      uint          `yaml:"-"`
+	}
+
+	AmiConfig struct {
+		DialTimeout       time.Duration     `yaml:"dial_timeout"`
+		ActionTimeout     time.Duration     `yaml:"action_timeout"`
+		ReconnectInterval time.Duration     `yaml:"reconnect_interval"`
+		ReaderBuffer      uint              `yaml:"reader_buffer"`
+		Servers           []AmiServerConfig `yaml:"servers"`
 	}
 )
+
+// TODO: Fill AmiServerConfig after load
+// func (c *AmiServerConfig) FillValues(amiCfg *AmiConfig) {
+// 	c.DialTimeout = amiCfg.DialTimeout
+// 	c.ActionTimeout = amiCfg.ActionTimeout
+// 	c.ReconnectInterval = amiCfg.ReconnectInterval
+// 	c.ReaderBuffer = amiCfg.ReaderBuffer
+// }
 
 func New(fileName string) (*Config, error) {
 	panic("not implemented")

@@ -1,0 +1,4 @@
+SEQUENTIAL
+# user, domain, authentication
+1001;127.0.0.1;[authentication username=1001 password=1001]
+
