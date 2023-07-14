@@ -107,8 +107,8 @@ func newAgiActionHandler(req *actionRequest) *agiActionHandler {
 	}
 }
 
-func newAgiAction(name string, timeout time.Duration) *defaultAction {
-	req := newActionRequest(name, timeout)
+func newAgiAction(timeout time.Duration) *defaultAction {
+	req := newActionRequest(actionAGI, timeout)
 
 	return &defaultAction{
 		req:     req,
@@ -117,7 +117,7 @@ func newAgiAction(name string, timeout time.Duration) *defaultAction {
 }
 
 func (a *ami) Answer(ctx context.Context, host string, channel string) error {
-	ac := newAgiAction(actionAGI, a.cfg.ActionTimeout)
+	ac := newAgiAction(a.cfg.ActionTimeout)
 	ac.addField(keyChannel, channel)
 	ac.addField(keyCommand, agiCmdAnswer)
 	ac.addField(keyCommandID, ac.req.id)
@@ -128,7 +128,7 @@ func (a *ami) Answer(ctx context.Context, host string, channel string) error {
 }
 
 func (a *ami) Playback(ctx context.Context, host string, channel string, fileName string) error {
-	ac := newAgiAction(actionAGI, a.cfg.ActionTimeout)
+	ac := newAgiAction(a.cfg.ActionTimeout)
 	ac.addField(keyChannel, channel)
 	ac.addField(keyCommand, fmt.Sprintf("%s %s", agiCmdPlayback, fileName))
 	ac.addField(keyCommandID, ac.req.id)
@@ -139,7 +139,7 @@ func (a *ami) Playback(ctx context.Context, host string, channel string, fileNam
 }
 
 func (a *ami) StartMOH(ctx context.Context, host string, channel string) error {
-	ac := newAgiAction(actionAGI, a.cfg.ActionTimeout)
+	ac := newAgiAction(a.cfg.ActionTimeout)
 	ac.addField(keyChannel, channel)
 	ac.addField(keyCommand, fmt.Sprintf("%s %s", agiCmdSetMusic, agiOn))
 	ac.addField(keyCommandID, ac.req.id)
@@ -150,7 +150,7 @@ func (a *ami) StartMOH(ctx context.Context, host string, channel string) error {
 }
 
 func (a *ami) StopMOH(ctx context.Context, host string, channel string) error {
-	ac := newAgiAction(actionAGI, a.cfg.ActionTimeout)
+	ac := newAgiAction(a.cfg.ActionTimeout)
 	ac.addField(keyChannel, channel)
 	ac.addField(keyCommand, fmt.Sprintf("%s %s", agiCmdSetMusic, agiOff))
 	ac.addField(keyCommandID, ac.req.id)

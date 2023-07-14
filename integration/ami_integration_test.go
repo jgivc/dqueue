@@ -1,4 +1,4 @@
-package ami
+package integration
 
 import (
 	"context"
@@ -7,23 +7,27 @@ import (
 	"time"
 
 	"github.com/jgivc/vapp/config"
+	"github.com/jgivc/vapp/pkg/ami"
 	"github.com/jgivc/vapp/pkg/logger"
 	"github.com/stretchr/testify/suite"
 )
 
-type ServerIntegrationTestSuite struct {
+type AmiIntegrationTestSuite struct {
 	suite.Suite
 	// srv amiServer
-	ami Ami
-	ps  pubSubIf
+	ami ami.Ami
 }
 
-func (s *ServerIntegrationTestSuite) SetupTest() {
+func (s *AmiIntegrationTestSuite) SetupTest() {
 	// logger := new(mocks.LoggerMock)
 	logger := logger.New()
 
 	cfg := &config.AmiConfig{
 		ActionTimeout: 2 * time.Second,
+		PSConfig: config.PubSubConfig{
+			PublishQueueSize:    100,
+			SubscriberQueueSize: 1000,
+		},
 		Servers: []config.AmiServerConfig{
 			{
 				Host:              "asterisk",
@@ -37,11 +41,12 @@ func (s *ServerIntegrationTestSuite) SetupTest() {
 			},
 		},
 	}
-	s.ps = newPubSub(&config.PubSubConfig{PublishQueueSize: 100, SubscriberQueueSize: 1000}, logger)
-	s.ami = New(cfg, &cf{}, s.ps, logger)
+	// s.ps = newPubSub(&config.PubSubConfig{PublishQueueSize: 100, SubscriberQueueSize: 1000}, logger)
+	// s.ami = newAmi(cfg, newConnectionFactory(), s.ps, logger)
+	s.ami = ami.New(cfg, logger)
 }
 
-func (s *ServerIntegrationTestSuite) TestOne() {
+func (s *AmiIntegrationTestSuite) TestOne() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var wg sync.WaitGroup
@@ -66,8 +71,8 @@ func (s *ServerIntegrationTestSuite) TestOne() {
 			defer wg.Done()
 			defer close(wait)
 
-			subs := s.ps.Subscribe(func(e *Event) bool {
-				return e.Name == keyEvent && e.Get(keyEvent) == "AsyncAGIStart"
+			subs := s.ami.Subscribe(func(e *ami.Event) bool {
+				return e.Name == "Event" && e.Get("Event") == "AsyncAGIStart"
 			})
 			defer subs.Close()
 
@@ -97,6 +102,6 @@ func (s *ServerIntegrationTestSuite) TestOne() {
 	wg.Wait()
 }
 
-func TestServerIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, new(ServerIntegrationTestSuite))
+func TestAmiIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(AmiIntegrationTestSuite))
 }

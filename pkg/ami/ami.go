@@ -67,7 +67,7 @@ func (a *ami) Start(ctx context.Context) error {
 	return nil
 }
 
-func New(cfg *config.AmiConfig, cf connectionFactory, ps pubSubIf, logger logger.Logger) Ami {
+func newAmi(cfg *config.AmiConfig, cf connectionFactory, ps pubSubIf, logger logger.Logger) Ami {
 	return &ami{
 		cfg:     cfg,
 		servers: make(map[string]amiServer),
@@ -75,4 +75,9 @@ func New(cfg *config.AmiConfig, cf connectionFactory, ps pubSubIf, logger logger
 		cf:      cf,
 		logger:  logger,
 	}
+}
+
+func New(cfg *config.AmiConfig, logger logger.Logger) Ami {
+	ps := newPubSub(&cfg.PSConfig, logger)
+	return newAmi(cfg, newConnectionFactory(), ps, logger)
 }

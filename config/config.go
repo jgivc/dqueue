@@ -6,7 +6,7 @@ type (
 	Config struct {
 		ClientService `yaml:"client_service"`
 		OperatorRepo  `yaml:"operator_repo"`
-		PubSubConfig  `yaml:"pubsub"`
+		AmiConfig     `yaml:"ami"`
 	}
 
 	ClientService struct {
@@ -41,6 +41,7 @@ type (
 		ActionTimeout     time.Duration     `yaml:"action_timeout"`
 		ReconnectInterval time.Duration     `yaml:"reconnect_interval"`
 		ReaderBuffer      uint              `yaml:"reader_buffer"`
+		PSConfig          PubSubConfig      `yaml:"pubsub"`
 		Servers           []AmiServerConfig `yaml:"servers"`
 	}
 )

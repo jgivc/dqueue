@@ -14,4 +14,4 @@ RUN go env -w CGO_ENABLED=0
 RUN go env -w GOOS=linux
 RUN go env -w GOARCH=amd64
 
-CMD ["go", "test", "-v", "-count=1", "./pkg/ami/...", "-timeout", "1m", "-run", "^TestServerIntegrationTestSuite$"]
+CMD ["go", "test", "-v", "-count=1", "./integration/...", "-timeout", "1m", "-run", "^TestAmiIntegrationTestSuite$"]
