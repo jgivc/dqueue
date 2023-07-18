@@ -159,7 +159,8 @@ func newDefaultAction(name string, timeout time.Duration) *defaultAction {
 	}
 }
 
-func (a *ami) runAction(ctx context.Context, host string, ac action) (interface{}, error) {
+func (a *ami) runAction(ctx context.Context, host string,
+	ac action) (interface{}, error) { //nolint: unparam // interface{} will be used for other actions
 	srv, err := a.getServer(host)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get host: %w", err)

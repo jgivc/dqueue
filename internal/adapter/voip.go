@@ -2,9 +2,18 @@ package adapter
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jgivc/vapp/internal/entity"
 	"github.com/jgivc/vapp/pkg/ami"
+)
+
+const (
+	hangupCause = 11
+)
+
+var (
+	errCannotConvert = errors.New("cannot convert to ClientDto")
 )
 
 type VoipAdapter struct {
@@ -12,19 +21,39 @@ type VoipAdapter struct {
 }
 
 func (v *VoipAdapter) Answer(ctx context.Context, client *entity.Client) error {
-	panic("not implemented")
+	dto, ok := client.Data.(ClientDto)
+	if !ok {
+		return errCannotConvert
+	}
+
+	return v.ami.Answer(ctx, dto.Host, dto.Channel)
 }
 
 func (v *VoipAdapter) Playback(ctx context.Context, client *entity.Client, fileName string) error {
-	panic("not implemented")
+	dto, ok := client.Data.(ClientDto)
+	if !ok {
+		return errCannotConvert
+	}
+
+	return v.ami.Playback(ctx, dto.Host, dto.Channel, fileName)
 }
 
 func (v *VoipAdapter) StartMOH(ctx context.Context, client *entity.Client) error {
-	panic("not implemented")
+	dto, ok := client.Data.(ClientDto)
+	if !ok {
+		return errCannotConvert
+	}
+
+	return v.ami.StartMOH(ctx, dto.Host, dto.Channel)
 }
 
 func (v *VoipAdapter) StopMOH(ctx context.Context, client *entity.Client) error {
-	panic("not implemented")
+	dto, ok := client.Data.(ClientDto)
+	if !ok {
+		return errCannotConvert
+	}
+
+	return v.ami.StopMOH(ctx, dto.Host, dto.Channel)
 }
 
 func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operators ...entity.Operator) error {
@@ -32,7 +61,12 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operators
 }
 
 func (v *VoipAdapter) Hangup(ctx context.Context, client *entity.Client) error {
-	panic("not implemented")
+	dto, ok := client.Data.(ClientDto)
+	if !ok {
+		return errCannotConvert
+	}
+
+	return v.ami.Hangup(ctx, dto.Host, dto.Channel, hangupCause)
 }
 
 func NewVoipAdapter(a ami.Ami) *VoipAdapter {
