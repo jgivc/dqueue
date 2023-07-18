@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -174,4 +176,111 @@ func (a *ami) Hangup(ctx context.Context, host string, channel string, cause int
 	_, err := a.runAction(ctx, host, ac)
 
 	return err
+}
+
+type originateBuilder struct {
+	host string
+	a    *ami
+	ap   action
+}
+
+func (b *originateBuilder) Exten(ext string) OriginateBuilder {
+	b.ap.addField(fieldExten, ext)
+
+	return b
+}
+
+func (b *originateBuilder) Context(ctx string) OriginateBuilder {
+	b.ap.addField(fieldContext, ctx)
+
+	return b
+}
+
+func (b *originateBuilder) Priority(pri uint) OriginateBuilder {
+	b.ap.addField(fieldPriority, pri)
+
+	return b
+}
+
+func (b *originateBuilder) Application(app string) OriginateBuilder {
+	b.ap.addField(fieldApplication, app)
+
+	return b
+}
+
+func (b *originateBuilder) Data(data string) OriginateBuilder {
+	b.ap.addField(fieldData, data)
+
+	return b
+}
+
+func (b *originateBuilder) Timeout(timeout time.Duration) OriginateBuilder {
+	b.ap.addField(fieldTimeout, int64(timeout/time.Millisecond))
+
+	return b
+}
+
+func (b *originateBuilder) CallerID(clid string) OriginateBuilder {
+	b.ap.addField(fieldCallerID, clid)
+
+	return b
+}
+
+func (b *originateBuilder) Variable(key string, value interface{}) OriginateBuilder {
+	b.ap.addField(fieldVariable, fmt.Sprintf("%s=%v", key, value))
+
+	return b
+}
+
+func (b *originateBuilder) AccountCode(code string) OriginateBuilder {
+	b.ap.addField(fieldAccount, code)
+
+	return b
+}
+
+func (b *originateBuilder) EarlyMedia(media bool) OriginateBuilder {
+	b.ap.addField(fieldEarlyMedia, strconv.FormatBool(media))
+
+	return b
+}
+
+func (b *originateBuilder) Async(async bool) OriginateBuilder {
+	b.ap.addField(fieldAsync, strconv.FormatBool(async))
+
+	return b
+}
+
+func (b *originateBuilder) Codecs(codecs ...string) OriginateBuilder {
+	b.ap.addField(fieldCodecs, strings.Join(codecs, ","))
+
+	return b
+}
+
+func (b *originateBuilder) ChannelID(id string) OriginateBuilder {
+	b.ap.addField(fieldChannelID, id)
+
+	return b
+}
+
+func (b *originateBuilder) OtherChannelID(id string) OriginateBuilder {
+	b.ap.addField(fieldOtherChannelID, id)
+
+	return b
+}
+
+func (b *originateBuilder) Run(ctx context.Context) error {
+	_, err := b.a.runAction(ctx, b.host, b.ap)
+
+	return err
+}
+
+func (a *ami) Originate(host string, channel string) OriginateBuilder {
+	ac := newDefaultAction(actionHangup, a.cfg.ActionTimeout)
+	ac.addField(keyChannel, channel)
+
+	return &originateBuilder{
+		host: host,
+		a:    a,
+		ap:   ac,
+	}
 }

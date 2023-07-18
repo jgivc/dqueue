@@ -1,7 +1,11 @@
 package integration
 
 import (
+	"bufio"
 	"context"
+	"fmt"
+	"net"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -46,6 +50,28 @@ func (s *AmiIntegrationTestSuite) SetupTest() {
 	s.ami = ami.New(cfg, logger)
 }
 
+func (s *AmiIntegrationTestSuite) readAsteriskConsole(conn net.Conn) {
+	defer conn.Close()
+
+	r := bufio.NewReader(conn)
+	var ready bool
+
+	for {
+		line, err := r.ReadString('\n')
+		if err != nil {
+			return
+		}
+
+		if !ready && strings.Contains(line, "Asterisk ready") {
+			ready = true
+		}
+
+		if ready {
+			fmt.Println("LINE111:", line)
+		}
+	}
+}
+
 func (s *AmiIntegrationTestSuite) TestOne() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -63,6 +89,30 @@ func (s *AmiIntegrationTestSuite) TestOne() {
 
 			defer s.ami.Close()
 			<-wait
+		})
+
+		wg.Add(1)
+		t.Run("asterisk_console", func(t *testing.T) {
+			t.Parallel()
+			defer wg.Done()
+
+			ln, err := net.Listen("tcp", ":8080")
+			if err != nil {
+				s.Require().NoError(err)
+			}
+
+			go func() {
+				<-wait
+				ln.Close()
+			}()
+
+			for {
+				conn, err2 := ln.Accept()
+				if err2 != nil {
+					return
+				}
+				go s.readAsteriskConsole(conn)
+			}
 		})
 
 		wg.Add(1)
