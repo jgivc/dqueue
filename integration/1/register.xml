@@ -3,7 +3,6 @@
 <scenario name="Basic UAS responder">
 
 
-<!-- <Globals variables="line"/> -->
 <Global variables="line" />
 <Reference variables="line" />
 

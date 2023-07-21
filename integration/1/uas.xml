@@ -55,7 +55,7 @@
       [last_To:];tag=[pid]SIPpTag01[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[field0]@[local_ip]:[local_port]>
+      Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
       Content-Length: 0
     ]]>
   </send>
@@ -72,7 +72,7 @@
       [last_To:];tag=[pid]SIPpTag01[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[field0]@[local_ip]:[local_port]>
+      Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
       Content-Type: application/sdp
       Content-Length: [len]
 

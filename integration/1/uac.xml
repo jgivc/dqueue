@@ -2,15 +2,19 @@
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 <scenario name="UAC">
 
+    <Global variables="line" />
+    <Reference variables="line" />
+
+
     <send retrans="500">
         <![CDATA[
             INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
             Via: SIP/2.0/[transport] [local_ip]:[local_port]
-            From: "[field0]" <sip:[field0]@[field1]:[local_port]>;tag=[call_number]
+            From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
             To: sut <sip:[service]@[remote_ip]:[remote_port]>
             Call-ID: [call_id]
             Cseq: 1 INVITE
-            Contact: sip:sipp@[local_ip]:[local_port]
+            Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
             Content-Type: application/sdp
             Content-Length: 0
 
@@ -28,11 +32,11 @@
         <![CDATA[
             ACK sip:[service]@[remote_ip]:[remote_port] SIP/2.0
             Via: SIP/2.0/[transport] [local_ip]:[local_port]
-            From: "[field0]" <sip:[field0]@[field1]:[local_port]>;tag=[call_number]
+            From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
             To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
             Call-ID: [call_id]
             Cseq: 1 ACK
-            Contact: sip:sipp@[local_ip]:[local_port]
+            Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
             Content-Length: 0
         ]]>
     </send>
@@ -41,12 +45,12 @@
         <![CDATA[
             INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
             Via: SIP/2.0/[transport] [local_ip]:[local_port]
-            From: "[field0]" <sip:[field0]@[field1]:[local_port]>;tag=[call_number]
+            From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
             To: sut <sip:[service]@[remote_ip]:[remote_port]>
             Call-ID: [call_id]
             Cseq: 1 INVITE
-            Contact: sip:sipp@[local_ip]:[local_port]
-            [field2]
+            Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
+            [field2 line="[line]"]
             Content-Type: application/sdp
             Content-Length: [len]
 
@@ -72,14 +76,13 @@
     <send>
         <![CDATA[
             ACK [next_url] SIP/2.0
-            Via: SIP/2.0/[transport] [local_ip]:[local_port]
+            [last_Via:]
             [routes]
-            From: "[field0]" <sip:[field0]@[field1]:[local_port]>;tag=[call_number]
-            To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
-            Call-ID: [call_id]
+            [last_From:]
+            [last_To:]
+            [last_Call-ID:]
             Cseq: 1 ACK
-            Contact: sip:sipp@[local_ip]:[local_port]
-            [field2]
+            Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
             Content-Length: 0
         ]]>
     </send>
@@ -96,7 +99,7 @@
             [last_To:]
             [last_Call-ID:]
             [last_CSeq:]
-            Contact: <sip:[field0]@[local_ip]:[local_port]>
+            Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
             Content-Length: 0
         ]]>
     </send>
