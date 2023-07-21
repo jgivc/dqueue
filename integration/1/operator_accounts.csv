@@ -1,0 +1,8 @@
+SEQUENTIAL
+# user, domain, authentication
+2001;office.voip;[authentication username=2001 password=2001]
+2002;office.voip;[authentication username=2002 password=2002]
+2003;office.voip;[authentication username=2003 password=2003]
+2004;office.voip;[authentication username=2004 password=2004]
+2005;office.voip;[authentication username=2005 password=2005]
+

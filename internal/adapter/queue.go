@@ -14,6 +14,7 @@ var (
 )
 
 // TODO: Remove closed clients
+// TODO: If working time is over
 type Queue struct {
 	maxClients int
 	mux        sync.Mutex

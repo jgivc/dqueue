@@ -4,9 +4,11 @@ import "time"
 
 type (
 	Config struct {
-		ClientService `yaml:"client_service"`
-		OperatorRepo  `yaml:"operator_repo"`
-		AmiConfig     `yaml:"ami"`
+		ClientService     `yaml:"client_service"`
+		OperatorRepo      `yaml:"operator_repo"`
+		PubSubConfig      `yaml:"pubsub"`
+		VoipAdapterConfig `yaml:"voip_adapter"`
+		AmiConfig         `yaml:"ami"`
 	}
 
 	ClientService struct {
@@ -23,6 +25,16 @@ type (
 	PubSubConfig struct {
 		PublishQueueSize    uint `yaml:"publish_queue_size"`
 		SubscriberQueueSize uint `yaml:"subscriber_queue_size"`
+	}
+
+	VoipAdapterConfig struct {
+		DialTimeout       time.Duration `yaml:"dial_timeout"`
+		DialContext       string        `yaml:"dial_context"`
+		DialTemplate      string        `yaml:"dial_template"` // e.g. PJSIP/%s@context, %s - operator number
+		DialExten         string        `yaml:"dial_to_exten"` // Originate second leg
+		VarClientChannel  string        `yaml:"var_client_channel"`
+		VarClientID       string        `yaml:"var_client_id"`
+		VarOperatorNumber string        `yaml:"var_operator_number"`
 	}
 
 	AmiServerConfig struct {

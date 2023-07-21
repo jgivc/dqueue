@@ -3,7 +3,9 @@ package adapter
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/entity"
 	"github.com/jgivc/vapp/pkg/ami"
 )
@@ -17,6 +19,7 @@ var (
 )
 
 type VoipAdapter struct {
+	cfg *config.VoipAdapterConfig
 	ami ami.Ami
 }
 
@@ -56,10 +59,6 @@ func (v *VoipAdapter) StopMOH(ctx context.Context, client *entity.Client) error 
 	return v.ami.StopMOH(ctx, dto.Host, dto.Channel)
 }
 
-func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operators ...entity.Operator) error {
-	panic("not implemented")
-}
-
 func (v *VoipAdapter) Hangup(ctx context.Context, client *entity.Client) error {
 	dto, ok := client.Data.(ClientDto)
 	if !ok {
@@ -67,6 +66,22 @@ func (v *VoipAdapter) Hangup(ctx context.Context, client *entity.Client) error {
 	}
 
 	return v.ami.Hangup(ctx, dto.Host, dto.Channel, hangupCause)
+}
+
+func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operator *entity.Operator) error {
+	dto, ok := client.Data.(ClientDto)
+	if !ok {
+		return errCannotConvert
+	}
+
+	return v.ami.Originate(dto.Host, fmt.Sprintf(v.cfg.DialTemplate, operator.Number)).
+		Context(v.cfg.DialContext).
+		CallerID(client.Number).
+		Variable(v.cfg.VarClientChannel, dto.Channel).
+		Variable(v.cfg.VarClientID, client.ID).
+		Variable(v.cfg.VarOperatorNumber, operator.Number).
+		Async(true).
+		Run(ctx)
 }
 
 func NewVoipAdapter(a ami.Ami) *VoipAdapter {

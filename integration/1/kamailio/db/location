@@ -1,0 +1,2 @@
+ruid(str) username(str) domain(str,null) contact(str,null) received(str,null) path(str,null) expires(int,null) q(double,null) callid(str,null) cseq(int,null) last_modified(int) flags(int) cflags(int) user_agent(str) socket(str) methods(int,null) instance(str,null) reg_id(int) server_id(int) connection_id(int) keepalive(int) partition(int)
+uloc-64ba6b96-16-1:2001::sip\:2001@172.17.0.3\:5060:::1689942508:-1.00:reg///1-1@172.17.0.3:2:1689938908:0:0:SIPp:udp\:172.17.0.2\:5060:::0:0:-1:0:0
