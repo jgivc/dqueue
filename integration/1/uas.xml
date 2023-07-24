@@ -96,57 +96,6 @@
   <!-- This "pause" can be adusted with -d <milliseconds> in command line -->
   <pause/>
 
-<!--
-  <send retrans="500">
-    <![CDATA[
-      BYE [next_url] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port]
-      [routes]
-      From: "sipp" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
-      To: sut <sip:[service]@[remote_ip]:[remote_port]>
-      Call-ID: [call_id]
-      CSeq: [cseq] BYE
-      Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
-      Max-Forwards: 70
-      Subject: Performance Test
-      Content-Length: 0
-    ]]>
-  </send>
-
-  <recv response="407" auth="true">
-  </recv>
-
-  <send>
-    <![CDATA[
-      ACK sip:[field0 line="[line]"]@[field1 line="[line]"]:[remote_port] SIP/2.0
-      [last_Via:]
-      [last_From:]
-      [last_To:]
-      [last_Call-ID:]
-      [last_CSeq:]
-      Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
-      Content-Length: 0
-    ]]>
-  </send>
-
-  <send retrans="500">
-    <![CDATA[
-      BYE [next_url] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port]
-      [routes]
-      From: "sipp" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
-      To: sut <sip:[service]@[remote_ip]:[remote_port]>
-      Call-ID: [call_id]
-      CSeq: [cseq] BYE
-      Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
-      [field2]
-      Max-Forwards: 70
-      Subject: Performance Test
-      Content-Length: 0
-    ]]>
-  </send>
--->
-
   <send retrans="500">
     <![CDATA[
       BYE [next_url] SIP/2.0
@@ -165,26 +114,6 @@
   <!-- We should get "OK" -->
   <recv response="200" crlf="true">
   </recv>
-
-
-  <!--
-  <recv request="BYE">
-  </recv>
-
-  <send>
-    <![CDATA[
-      SIP/2.0 200 OK
-      [last_Via:]
-      [last_Record-Route:]
-      [last_From:]
-      [last_To:]
-      [last_Call-ID:]
-      [last_CSeq:]
-      Contact: <sip:[field0]@[local_ip]:[local_port]>
-    ]]>
-  </send>
-
--->
 
   <!-- Keep the call open for a while in case the 200 is lost to be     -->
   <!-- able to retransmit it if we receive the BYE again.               -->

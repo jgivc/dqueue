@@ -6,11 +6,6 @@
 <Global variables="line" />
 <Reference variables="line" />
 
-<!--
-<nop>
-    <lookup assign_to="line" file="accounts.csv" key="[$username]" />  
-</nop>
--->
 
 <send retrans="500">
 <![CDATA[
