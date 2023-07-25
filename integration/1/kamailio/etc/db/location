@@ -1,1 +1,2 @@
 ruid(str) username(str) domain(str,null) contact(str,null) received(str,null) path(str,null) expires(int,null) q(double,null) callid(str,null) cseq(int,null) last_modified(int) flags(int) cflags(int) user_agent(str) socket(str) methods(int,null) instance(str,null) reg_id(int) server_id(int) connection_id(int) keepalive(int) partition(int)
+

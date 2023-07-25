@@ -87,10 +87,11 @@
     ]]>
   </send>
 
-  <recv request="ACK"
-        rtd="true"
-        rrs="true"
-        crlf="true">
+  <recv request="ACK" rtd="true" crlf="true">
+    <action>
+      <ereg regexp="(.*)" search_in="hdr" header="From: " assign_to="1" />
+      <ereg regexp="(.*)" search_in="hdr" header="To: " assign_to="2" />
+    </action>
   </recv>
 
   <!-- This "pause" can be adusted with -d <milliseconds> in command line -->
@@ -99,10 +100,10 @@
   <send retrans="500">
     <![CDATA[
       BYE [next_url] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port]
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
       [routes]
-      [last_From:]
-      [last_To:]
+      From: [$2]
+      To: [$1]
       [last_Call-ID:]
       CSeq: [cseq] BYE
       Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>

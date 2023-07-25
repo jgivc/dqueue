@@ -8,10 +8,10 @@
 
     <send retrans="500">
         <![CDATA[
-            INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+            INVITE sip:[service]@[field1 line="[line]"]:[remote_port] SIP/2.0
             Via: SIP/2.0/[transport] [local_ip]:[local_port]
             From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
-            To: sut <sip:[service]@[remote_ip]:[remote_port]>
+            To: sut <sip:[service]@[field1 line="[line]"]:[remote_port]>
             Call-ID: [call_id]
             Cseq: 1 INVITE
             Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
@@ -30,10 +30,10 @@
 
     <send>
         <![CDATA[
-            ACK sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+            ACK sip:[service]@[field1 line="[line]"]:[remote_port] SIP/2.0
             Via: SIP/2.0/[transport] [local_ip]:[local_port]
             From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
-            To: sut <sip:[service]@[remote_ip]:[remote_port]>[peer_tag_param]
+            To: sut <sip:[service]@[field1 line="[line]"]:[remote_port]>[peer_tag_param]
             Call-ID: [call_id]
             Cseq: 1 ACK
             Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
@@ -43,10 +43,10 @@
 
     <send retrans="500">
         <![CDATA[
-            INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+            INVITE sip:[service]@[field1 line="[line]"]:[remote_port] SIP/2.0
             Via: SIP/2.0/[transport] [local_ip]:[local_port]
             From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
-            To: sut <sip:[service]@[remote_ip]:[remote_port]>
+            To: sut <sip:[service]@[field1 line="[line]"]:[remote_port]>
             Call-ID: [call_id]
             Cseq: 1 INVITE
             Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>

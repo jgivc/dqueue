@@ -1,27 +1,67 @@
 version: '3'
 services:
-  asterisk:
-    build: integration/asterisk
-    container_name: asterisk_t
+  asterisk1:
+    build: integration/1/asterisk
+    container_name: an1
 
-  integration:
-    build:
-      context: .
-      dockerfile: integration/app/Dockerfile
-    container_name: app_t
-    depends_on:
-      - asterisk
+  asterisk2:
+    build: integration/1/asterisk
+    container_name: an2
+
+  kamailio:
+    build: integration/1/kamailio
+    container_name: kamailio
+    volumes:
+      - "./integration/1/kamailio/etc:/etc/kamailio"
     healthcheck:
-      # test: ["CMD", "pidof", "go"]
-      test: ["CMD-SHELL", "netstat -an | grep '5038[[:space:]]\\+ESTABLISHED'"]
-      interval: 2s
+      test: ["CMD-SHELL", "test $(kamcmd dispatcher.list | grep 'FLAGS: AX' | wc -l) -eq 2"]
+      interval: 5s
       timeout: 2s
-      retries: 20
-
-  sipp:
-    build: integration/sipp
-    container_name: sipp_t
-    command: asterisk -sf uac.xml -p 5061 -s 3000 -m 1 -inf accounts.csv
+      retries: 10
+    networks:
+      default:
+        aliases:
+          - office.voip
+    
+  sipp_op:
+    build: integration/1/sipp_op
+    container_name: sipp_op
+    command: kamailio 2003 5000
+    healthcheck:
+      test: ["CMD-SHELL", "test -n \"$(ps | grep uas.xml | grep -v grep)\""]
+      interval: 5s
+      timeout: 2s
+      retries: 10
     depends_on:
-      integration:
+      kamailio:
         condition: service_healthy
+
+  sipp_cl:
+    build: integration/1/sipp_cl
+    container_name: sipp_cl
+    command: kamailio -sf uac.xml -s 2003 -m 10 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4
+    depends_on:
+      sipp_op:
+        condition: service_healthy
+
+  # integration:
+  #   build:
+  #     context: .
+  #     dockerfile: integration/app/Dockerfile
+  #   container_name: app_t
+  #   depends_on:
+  #     - asterisk
+  #   healthcheck:
+  #     # test: ["CMD", "pidof", "go"]
+  #     test: ["CMD-SHELL", "netstat -an | grep '5038[[:space:]]\\+ESTABLISHED'"]
+  #     interval: 2s
+  #     timeout: 2s
+  #     retries: 20
+
+  # sipp:
+  #   build: integration/sipp
+  #   container_name: sipp_t
+  #   command: asterisk -sf uac.xml -p 5061 -s 3000 -m 1 -inf accounts.csv
+  #   depends_on:
+  #     integration:
+  #       condition: service_healthy
