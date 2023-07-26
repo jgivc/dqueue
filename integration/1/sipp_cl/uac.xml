@@ -9,7 +9,7 @@
     <send retrans="500">
         <![CDATA[
             INVITE sip:[service]@[field1 line="[line]"]:[remote_port] SIP/2.0
-            Via: SIP/2.0/[transport] [local_ip]:[local_port]
+            Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
             From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
             To: sut <sip:[service]@[field1 line="[line]"]:[remote_port]>
             Call-ID: [call_id]
@@ -31,7 +31,7 @@
     <send>
         <![CDATA[
             ACK sip:[service]@[field1 line="[line]"]:[remote_port] SIP/2.0
-            Via: SIP/2.0/[transport] [local_ip]:[local_port]
+            Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
             From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
             To: sut <sip:[service]@[field1 line="[line]"]:[remote_port]>[peer_tag_param]
             Call-ID: [call_id]
@@ -44,7 +44,7 @@
     <send retrans="500">
         <![CDATA[
             INVITE sip:[service]@[field1 line="[line]"]:[remote_port] SIP/2.0
-            Via: SIP/2.0/[transport] [local_ip]:[local_port]
+            Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
             From: "[field0 line="[line]"]" <sip:[field0 line="[line]"]@[field1 line="[line]"]>;tag=[call_number]
             To: sut <sip:[service]@[field1 line="[line]"]:[remote_port]>
             Call-ID: [call_id]
