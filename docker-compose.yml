@@ -26,10 +26,10 @@ services:
   sipp_op:
     build: integration/1/sipp_op
     container_name: sipp_op
-    command: kamailio 2003 5000
+    command: kamailio 2003
     healthcheck:
-      test: ["CMD-SHELL", "test -n \"$(ps | grep uas.xml | grep -v grep)\""]
-      interval: 5s
+      test: ["CMD-SHELL", "test -n \"$(ps | grep uas.xml | grep -v grep)\" && netstat -an | grep 5060"]
+      interval: 10s
       timeout: 2s
       retries: 10
     depends_on:
@@ -39,7 +39,7 @@ services:
   sipp_cl:
     build: integration/1/sipp_cl
     container_name: sipp_cl
-    command: kamailio -sf uac.xml -s 2003 -m 10 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4
+    command: kamailio -sf uac.xml -s 2003 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 50
     depends_on:
       sipp_op:
         condition: service_healthy

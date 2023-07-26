@@ -95,7 +95,8 @@
   </recv>
 
   <!-- This "pause" can be adusted with -d <milliseconds> in command line -->
-  <pause/>
+  <!-- <pause/> -->
+  <pause distribution="uniform" min="2000" max="10000"/>
 
   <send retrans="500">
     <![CDATA[
