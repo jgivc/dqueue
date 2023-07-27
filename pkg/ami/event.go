@@ -38,6 +38,14 @@ func (e *Event) write(w io.Writer) error {
 	return err
 }
 
+func (e *Event) IsEvent() bool {
+	return e.Name == keyEvent
+}
+
+func (e *Event) Event() string {
+	return e.Get(keyEvent)
+}
+
 func (e *Event) Get(key string) string {
 	if _, exists := e.Data[key]; exists {
 		return e.Data[key]

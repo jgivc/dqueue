@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"time"
 
 	"github.com/jgivc/vapp/internal/entity"
 	"github.com/stretchr/testify/mock"
@@ -35,8 +36,9 @@ func (m *VoipMock) StopMOH(ctx context.Context, client *entity.Client) error {
 	return args.Error(0)
 }
 
-func (m *VoipMock) Dial(ctx context.Context, client *entity.Client, operators ...entity.Operator) error {
-	args := m.Called(ctx, client, operators)
+func (m *VoipMock) Dial(ctx context.Context, client *entity.Client,
+	operator *entity.Operator, dialTimeout time.Duration) error {
+	args := m.Called(ctx, client, operator, dialTimeout)
 
 	return args.Error(0)
 }

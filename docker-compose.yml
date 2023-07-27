@@ -39,7 +39,7 @@ services:
   sipp_cl:
     build: integration/1/sipp_cl
     container_name: sipp_cl
-    command: kamailio -sf uac.xml -s 2003 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 50
+    command: kamailio -sf uac.xml -s 2003 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 10
     depends_on:
       sipp_op:
         condition: service_healthy

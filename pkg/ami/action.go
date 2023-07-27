@@ -276,7 +276,7 @@ func (b *originateBuilder) Run(ctx context.Context) error {
 }
 
 func (a *ami) Originate(host string, channel string) OriginateBuilder {
-	ac := newDefaultAction(actionHangup, a.cfg.ActionTimeout)
+	ac := newDefaultAction(actionOriginate, a.cfg.ActionTimeout)
 	ac.addField(keyChannel, channel)
 
 	return &originateBuilder{

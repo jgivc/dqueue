@@ -47,6 +47,7 @@ const (
 	actionAGI          = "AGI"
 	actionHangup       = "Hangup"
 	actionAsyncAGIExec = "AsyncAGIExec"
+	actionOriginate    = "Originate"
 
 	success = "Success"
 	goodbye = "Goodbye"

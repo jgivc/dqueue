@@ -56,6 +56,13 @@ type (
 		PSConfig          PubSubConfig      `yaml:"pubsub"`
 		Servers           []AmiServerConfig `yaml:"servers"`
 	}
+
+	DialerConfig struct {
+		CheckInterval             time.Duration `yaml:"check_interval"`
+		DialToAllOperatorsTimeout time.Duration `yaml:"dial_to_all_operators_timeout"`
+		DialPause                 time.Duration `yaml:"dial_pause"`
+		DialTimeout               time.Duration `yaml:dial_timeout"`
+	}
 )
 
 // TODO: Fill AmiServerConfig after load
