@@ -34,6 +34,7 @@ type (
 	OperatorRepo interface {
 		GetOperators(ctx context.Context) ([]*entity.Operator, error)
 		SetBusy(number string, busy bool) error
+		Exists(number string) bool
 	}
 
 	Logger interface {

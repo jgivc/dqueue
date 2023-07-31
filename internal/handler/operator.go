@@ -42,7 +42,15 @@ func (h *OperatorHandler) Register(ps pubSub) {
 					h.logger.Error("msg", "Cannot set operator free", "number",
 						e.CallerIDNum, "host", e.Host, "unique_id", e.Get(fields.Uniqueid), "error", err)
 				}
-			case events.Newchannel, events.BridgeEnter:
+				// case events.Newchannel, events.BridgeEnter:
+			case events.BridgeEnter:
+				num := e.Get(fields.ConnectedLineNum)
+				if err := h.srv.SetBusy(num, true); err != nil {
+					h.logger.Error("msg", "Cannot set operator busy", "number",
+						num, "host", e.Host, "unique_id", e.Get(fields.Uniqueid), "error", err)
+				}
+				fallthrough
+			case events.Newchannel:
 				if err := h.srv.SetBusy(e.CallerIDNum, true); err != nil {
 					h.logger.Error("msg", "Cannot set operator busy", "number",
 						e.CallerIDNum, "host", e.Host, "unique_id", e.Get(fields.Uniqueid), "error", err)

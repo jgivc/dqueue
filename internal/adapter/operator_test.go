@@ -54,7 +54,7 @@ func (s *OperatorRepoTestSuite) getRC() io.ReadCloser {
 
 func (s *OperatorRepoTestSuite) SetupTest() {
 	s.api = new(mocks.APIClientMock)
-	s.repo = adapter.NewOperatorRepoWithAPIClient(s.api)
+	s.repo = adapter.NewOperatorRepoWithAPIClient(s.api, &mocks.LoggerMock{})
 	s.operators = []*entity.Operator{
 		entity.NewOperator("1111", "Ivan", "Ivanov"),
 		entity.NewOperator("2222", "Petr", "Petrov"),

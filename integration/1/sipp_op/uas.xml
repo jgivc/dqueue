@@ -95,8 +95,7 @@
     </action>
   </recv>
 
-  <recv request="INVITE" crlf="true" rrs="true" timeout="500" ontimeout="2" next="1">
-  <!-- <recv request="INVITE" crlf="true" rrs="true"> -->
+  <!-- <recv request="INVITE" crlf="true" rrs="true" timeout="500" ontimeout="2" next="1">
     <action>
       <ereg regexp="(.*)" search_in="body" assign_to="3" />
       <log message="### 2"/>
@@ -125,35 +124,17 @@
     </action>
   </send>
 
-  <!-- <nop>
-    <action>
-      <log message="### 4"/>
-    </action>
-  </nop> -->
-
   <recv request="ACK" rtd="true" crlf="true">
     <action>
       <log message="### 4"/>
     </action>
   </recv>
 
-  <label id="2" />
-
-  <nop>
-    <action>
-      <log message="### 5"/>
-    </action>
-  </nop>
+  <label id="2" /> -->
 
   <!-- This "pause" can be adusted with -d <milliseconds> in command line -->
   <pause/>
-  <!-- <pause distribution="uniform" min="5000" max="10000"/> -->
-
-  <nop>
-    <action>
-      <log message="### 6"/>
-    </action>
-  </nop>
+  <!-- <pause distribution="uniform" min="5000" max="20000"/> -->
 
   <send retrans="500">
     <![CDATA[
@@ -175,9 +156,6 @@
 
   <!-- We should get "OK" -->
   <recv response="200" crlf="true">
-    <action>
-      <log message="### 8"/>
-    </action>
   </recv>
 
   <!-- Keep the call open for a while in case the 200 is lost to be     -->

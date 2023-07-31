@@ -85,7 +85,7 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operator 
 			return false
 		}
 		if e.IsEvent() && e.Event() == events.BridgeEnter {
-			fmt.Println(e)
+			// fmt.Println(e)
 			if e.Get(fields.CallerIDNum) == client.Number {
 				return e.Get(fields.ConnectedLineNum) == operator.Number
 			}

@@ -87,7 +87,7 @@
         ]]>
     </send>
 
-    <recv request="INVITE" crlf="true" rrs="true" timeout="1000" ontimeout="2" next="1">
+    <!-- <recv request="INVITE" crlf="true" rrs="true" timeout="1000" ontimeout="2" next="1">
         <action>
             <ereg regexp="(.*)" search_in="body" assign_to="3" />
             <log message="### 1"/>
@@ -122,7 +122,7 @@
         </action>
     </recv>
 
-    <label id="2" />
+    <label id="2" /> -->
 
     <recv request="BYE">
     </recv>

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/vapp/pkg/logger"
 )
 
 var (
@@ -19,6 +20,7 @@ type GetUniqueID interface {
 type ClientRepo struct {
 	mux     sync.Mutex
 	clients map[string]*entity.Client
+	logger  logger.Logger
 }
 
 func (r *ClientRepo) New(number string, data interface{}) (*entity.Client, error) {
@@ -45,6 +47,8 @@ func (r *ClientRepo) New(number string, data interface{}) (*entity.Client, error
 		return nil, fmt.Errorf("client %s is already exists: %w", id, errRepoError)
 	}
 
+	r.logger.Info("msg", "New client", "number", client.Number, "id", client.ID)
+
 	r.clients[id] = &client
 
 	return &client, nil
@@ -69,6 +73,9 @@ func (r *ClientRepo) Remove(_ string, data interface{}) error {
 		return nil
 	}
 
+	client := r.clients[id]
+	r.logger.Info("msg", "Remove client", "number", client.Number, "id", client.ID)
+
 	r.clients[id].Close()
 	delete(r.clients, id)
 
@@ -86,8 +93,9 @@ func (r *ClientRepo) Close() {
 	r.clients = nil
 }
 
-func NewClientRepo() *ClientRepo {
+func NewClientRepo(logger logger.Logger) *ClientRepo {
 	return &ClientRepo{
 		clients: make(map[string]*entity.Client),
+		logger:  logger,
 	}
 }

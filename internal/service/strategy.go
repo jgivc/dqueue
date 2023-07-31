@@ -13,6 +13,7 @@ import (
 type RrStrategy struct {
 	operators *list.List
 	voip      VoipAdapter
+	repo      OperatorRepo
 	cfg       *config.DialerConfig
 	logger    Logger
 }
@@ -101,14 +102,19 @@ func (s *RrStrategy) Dial(ctx context.Context, client *entity.Client, operators 
 		}
 
 		s.logger.Info("msg", "Dial success", "client", client.Number, "operator", op.Number)
+
+		if err := s.repo.SetBusy(op.Number, true); err != nil {
+			s.logger.Info("msg", "Cannot set operator busy", "client", client.Number, "operator", op.Number, "error", err)
+		}
 		return nil
 	}
 }
 
-func NewRrStrategy(cfg *config.DialerConfig, voip VoipAdapter, logger Logger) Strategy {
+func NewRrStrategy(cfg *config.DialerConfig, voip VoipAdapter, repo OperatorRepo, logger Logger) Strategy {
 	return &RrStrategy{
 		operators: list.New(),
 		voip:      voip,
+		repo:      repo,
 		cfg:       cfg,
 		logger:    logger,
 	}

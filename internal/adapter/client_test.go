@@ -14,7 +14,7 @@ type ClientRepoTestSuite struct {
 }
 
 func (s *ClientRepoTestSuite) SetupTest() {
-	s.repo = adapter.NewClientRepo()
+	s.repo = adapter.NewClientRepo(&mocks.LoggerMock{})
 }
 
 func (s *ClientRepoTestSuite) AfterTest(_, _ string) {

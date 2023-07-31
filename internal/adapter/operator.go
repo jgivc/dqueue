@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,11 +12,12 @@ import (
 
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/vapp/pkg/logger"
 )
 
-var (
-	errOperatorRepo = errors.New("operatorRepo error")
-)
+// var (
+// 	errOperatorRepo = errors.New("operatorRepo error")
+// )
 
 type APIClient interface {
 	Get(ctx context.Context) (io.ReadCloser, error)
@@ -58,6 +58,7 @@ type OperatorRepo struct {
 	apiClient APIClient
 	operators map[string]*entity.Operator
 	cfg       *config.OperatorRepo
+	logger    logger.Logger
 }
 
 func (r *OperatorRepo) load(ctx context.Context) ([]*entity.Operator, error) {
@@ -133,13 +134,22 @@ func (r *OperatorRepo) SetBusy(number string, busy bool) error {
 
 	if _, exists := r.operators[number]; exists {
 		r.operators[number].SetBusy(busy)
-
+		r.logger.Info("msg", "Set operator busy", "number", number, "busy", busy)
 		// return nil
 	}
 
 	// return fmt.Errorf("operator %s does not exists: %w", number, errOperatorRepo)
 
 	return nil
+}
+
+func (r *OperatorRepo) Exists(number string) bool {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	_, exists := r.operators[number]
+
+	return exists
 }
 
 func (r *OperatorRepo) Close() {
@@ -149,7 +159,7 @@ func (r *OperatorRepo) Close() {
 	r.operators = nil
 }
 
-func NewOperatorRepo(cfg *config.OperatorRepo) *OperatorRepo {
+func NewOperatorRepo(cfg *config.OperatorRepo, logger logger.Logger) *OperatorRepo {
 	return &OperatorRepo{
 		apiClient: &httpAPIClient{
 			noVerify:   cfg.NoVerify,
@@ -158,12 +168,14 @@ func NewOperatorRepo(cfg *config.OperatorRepo) *OperatorRepo {
 		},
 		operators: make(map[string]*entity.Operator),
 		cfg:       cfg,
+		logger:    logger,
 	}
 }
 
-func NewOperatorRepoWithAPIClient(apiClient APIClient) *OperatorRepo {
+func NewOperatorRepoWithAPIClient(apiClient APIClient, logger logger.Logger) *OperatorRepo {
 	return &OperatorRepo{
 		apiClient: apiClient,
 		operators: make(map[string]*entity.Operator),
+		logger:    logger,
 	}
 }

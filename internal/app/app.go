@@ -25,16 +25,16 @@ func Run(cfg *config.Config, logger logger.Logger) {
 
 	voip := adapter.NewVoipAdapter(&cfg.VoipAdapterConfig, ami)
 	queue := adapter.NewQueue(int(cfg.QueueConfig.MaxClients))
-	clientRepo := adapter.NewClientRepo()
-	operatorRepo := adapter.NewOperatorRepo(&cfg.OperatorRepo)
-	strategy := service.NewRrStrategy(&cfg.DialerConfig, voip, logger)
+	clientRepo := adapter.NewClientRepo(logger)
+	operatorRepo := adapter.NewOperatorRepo(&cfg.OperatorRepo, logger)
+	strategy := service.NewRrStrategy(&cfg.DialerConfig, voip, operatorRepo, logger)
 	dialer := service.NewDialerService(&cfg.DialerConfig, queue, operatorRepo, strategy, logger)
 	dialer.Start(ctx)
 
 	clientService := service.NewClientService(&cfg.ClientService, voip, queue, clientRepo, dialer, logger)
 	clientService.Start(ctx)
 
-	operatorService := service.NewOperatorService(operatorRepo)
+	operatorService := service.NewOperatorService(operatorRepo, dialer, logger)
 
 	clientHandler := handler.NewClientHandler(clientService, logger)
 	clientHandler.Register(ami)

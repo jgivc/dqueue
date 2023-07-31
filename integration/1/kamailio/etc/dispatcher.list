@@ -14,6 +14,6 @@
 #1 sip:127.0.0.1:7072 0 5
 #1 sip:127.0.0.1:7074
 
-1 sip:an1:5060
-1 sip:an2:5060
+1 sip:asterisk1:5060
+1 sip:asterisk2:5060
 
