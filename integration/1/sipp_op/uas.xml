@@ -91,12 +91,69 @@
     <action>
       <ereg regexp="(.*)" search_in="hdr" header="From: " assign_to="1" />
       <ereg regexp="(.*)" search_in="hdr" header="To: " assign_to="2" />
+      <log message="### 1"/>
     </action>
   </recv>
 
+  <recv request="INVITE" crlf="true" rrs="true" timeout="500" ontimeout="2" next="1">
+  <!-- <recv request="INVITE" crlf="true" rrs="true"> -->
+    <action>
+      <ereg regexp="(.*)" search_in="body" assign_to="3" />
+      <log message="### 2"/>
+    </action>
+  </recv>
+
+  <label id="1" />
+
+  <send retrans="500">
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_Record-Route:]
+      [last_From:]
+      [last_To:];tag=[pid]SIPpTag01[call_number]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
+      Content-Type: application/sdp
+      Content-Length: [len]
+
+      [$3]
+    ]]>
+    <action>
+      <log message="### 3"/>
+    </action>
+  </send>
+
+  <!-- <nop>
+    <action>
+      <log message="### 4"/>
+    </action>
+  </nop> -->
+
+  <recv request="ACK" rtd="true" crlf="true">
+    <action>
+      <log message="### 4"/>
+    </action>
+  </recv>
+
+  <label id="2" />
+
+  <nop>
+    <action>
+      <log message="### 5"/>
+    </action>
+  </nop>
+
   <!-- This "pause" can be adusted with -d <milliseconds> in command line -->
-  <!-- <pause/> -->
-  <pause distribution="uniform" min="2000" max="10000"/>
+  <pause/>
+  <!-- <pause distribution="uniform" min="5000" max="10000"/> -->
+
+  <nop>
+    <action>
+      <log message="### 6"/>
+    </action>
+  </nop>
 
   <send retrans="500">
     <![CDATA[
@@ -111,10 +168,16 @@
       Max-Forwards: 70
       Content-Length: 0
     ]]>
+    <action>
+      <log message="### 7"/>
+    </action>
   </send>
 
   <!-- We should get "OK" -->
   <recv response="200" crlf="true">
+    <action>
+      <log message="### 8"/>
+    </action>
   </recv>
 
   <!-- Keep the call open for a while in case the 200 is lost to be     -->

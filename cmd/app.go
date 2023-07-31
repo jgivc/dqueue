@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/jgivc/vapp/config"
@@ -13,8 +14,11 @@ const (
 )
 
 func main() {
+	configFileName := flag.String("c", defaultConfigFileName, "Path to config file.")
+	flag.Parse()
+
 	logger := logger.New()
-	cfg, err := config.New(defaultConfigFileName)
+	cfg, err := config.New(*configFileName)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -38,10 +38,9 @@ func (s *AmiIntegrationTestSuite) SetupTest() {
 				Port:              5038,
 				Username:          "admin",
 				Secret:            "P@$$w0rD!",
-				DialTimeout:       time.Second,
 				ActionTimeout:     5 * time.Second,
 				ReconnectInterval: 10 * time.Second,
-				ReaderBuffer:      100,
+				// ReaderBuffer:      100,
 			},
 		},
 	}

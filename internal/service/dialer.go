@@ -40,24 +40,26 @@ func (s *DialerService) Start(ctx context.Context) {
 
 func (s *DialerService) handle(ctx context.Context) {
 	for range s.notify {
-		if !s.queue.HasClients() {
-			continue
-		}
+		for {
+			if !s.queue.HasClients() {
+				break
+			}
 
-		ops, err := s.repo.GetOperators(ctx)
-		if err != nil || len(ops) < 1 {
-			s.logger.Error("msg", "Cannot get operators", "error", err)
-			continue
-		}
+			ops, err := s.repo.GetOperators(ctx)
+			if err != nil || len(ops) < 1 {
+				s.logger.Error("msg", "Cannot get operators", "error", err)
+				break
+			}
 
-		client, err := s.queue.Pop()
-		if err != nil {
-			s.logger.Error("msg", "Cannot get client from queue", "error", err)
-			continue
-		}
+			client, err := s.queue.Pop()
+			if err != nil {
+				s.logger.Error("msg", "Cannot get client from queue", "error", err)
+				break
+			}
 
-		if err2 := s.strategy.Dial(ctx, client, ops); err2 != nil {
-			s.logger.Error("msg", "Cannot handle dial to operators", "error", err2)
+			if err2 := s.strategy.Dial(ctx, client, ops); err2 != nil {
+				s.logger.Error("msg", "Cannot handle dial to operators", "error", err2)
+			}
 		}
 	}
 }
@@ -75,7 +77,7 @@ func NewDialerService(cfg *config.DialerConfig, queue Queue, repo OperatorRepo,
 		queue:    queue,
 		repo:     repo,
 		logger:   logger,
-		notify:   make(chan struct{}),
+		notify:   make(chan struct{}, 1),
 		cfg:      cfg,
 		strategy: strategy,
 	}

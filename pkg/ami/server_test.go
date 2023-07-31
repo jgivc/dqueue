@@ -59,7 +59,6 @@ func (s *AmiServerTestSuite) TestFife() { //nolint: gocognit
 	cfg := &config.AmiServerConfig{
 		Username:          "admin123",
 		Secret:            "p@ssw0rd!23",
-		DialTimeout:       time.Second,
 		ActionTimeout:     time.Second,
 		ReconnectInterval: 100 * time.Millisecond,
 		ReaderBuffer:      100,

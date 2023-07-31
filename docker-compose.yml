@@ -4,9 +4,9 @@ services:
     build: integration/1/asterisk
     container_name: an1
 
-  asterisk2:
-    build: integration/1/asterisk
-    container_name: an2
+  # asterisk2:
+  #   build: integration/1/asterisk
+  #   container_name: an2
 
   kamailio:
     build: integration/1/kamailio
@@ -14,7 +14,7 @@ services:
     volumes:
       - "./integration/1/kamailio/etc:/etc/kamailio"
     healthcheck:
-      test: ["CMD-SHELL", "test $(kamcmd dispatcher.list | grep 'FLAGS: AX' | wc -l) -eq 2"]
+      test: ["CMD-SHELL", "test $(kamcmd dispatcher.list | grep 'FLAGS: AX' | wc -l) -eq 1"]
       interval: 5s
       timeout: 2s
       retries: 10
@@ -26,7 +26,7 @@ services:
   sipp_op:
     build: integration/1/sipp_op
     container_name: sipp_op
-    command: kamailio 2003
+    command: kamailio 2003 5000
     healthcheck:
       test: ["CMD-SHELL", "test -n \"$(ps | grep uas.xml | grep -v grep)\" && netstat -an | grep 5060"]
       interval: 10s
@@ -36,32 +36,26 @@ services:
       kamailio:
         condition: service_healthy
 
-  sipp_cl:
-    build: integration/1/sipp_cl
-    container_name: sipp_cl
-    command: kamailio -sf uac.xml -s 2003 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 10
-    depends_on:
-      sipp_op:
-        condition: service_healthy
-
-  # integration:
+  # app:
   #   build:
   #     context: .
-  #     dockerfile: integration/app/Dockerfile
-  #   container_name: app_t
-  #   depends_on:
-  #     - asterisk
+  #     dockerfile: integration/1/app/Dockerfile
+  #   container_name: app
   #   healthcheck:
-  #     # test: ["CMD", "pidof", "go"]
-  #     test: ["CMD-SHELL", "netstat -an | grep '5038[[:space:]]\\+ESTABLISHED'"]
-  #     interval: 2s
+  #     test: ["CMD-SHELL", "test $(netstat -an | grep 5060 | wc -l) -eq 2"]
+  #     interval: 10s
   #     timeout: 2s
-  #     retries: 20
-
-  # sipp:
-  #   build: integration/sipp
-  #   container_name: sipp_t
-  #   command: asterisk -sf uac.xml -p 5061 -s 3000 -m 1 -inf accounts.csv
+  #     retries: 10
   #   depends_on:
-  #     integration:
+  #     sipp_op:
   #       condition: service_healthy
+
+  # sipp_cl:
+  #   build: integration/1/sipp_cl
+  #   container_name: sipp_cl
+  #   # command: kamailio -sf uac.xml -s 2003 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 10
+  #   command: kamailio -sf uac.xml -s 3000 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 1
+  #   depends_on:
+  #     app:
+  #       condition: service_healthy
+      

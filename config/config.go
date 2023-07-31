@@ -1,78 +1,113 @@
 package config
 
-import "time"
+import (
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
+)
 
 type (
 	Config struct {
-		ClientService     `yaml:"client_service"`
-		OperatorRepo      `yaml:"operator_repo"`
-		PubSubConfig      `yaml:"pubsub"`
-		VoipAdapterConfig `yaml:"voip_adapter"`
-		AmiConfig         `yaml:"ami"`
+		QueueConfig       QueueConfig       `yaml:"queue"`
+		ClientService     ClientService     `yaml:"client_service"`
+		OperatorRepo      OperatorRepo      `yaml:"operator_repo"`
+		PubSubConfig      PubSubConfig      `yaml:"pubsub"`
+		VoipAdapterConfig VoipAdapterConfig `yaml:"voip_adapter"`
+		DialerConfig      DialerConfig      `yaml:"dialer"`
+		AmiConfig         AmiConfig         `yaml:"ami"`
+	}
+
+	QueueConfig struct {
+		MaxClients uint `yaml:"max_clients" env-default:"100"`
 	}
 
 	ClientService struct {
-		ChannelBufferSize   int
-		HandleClientTimeout time.Duration
+		ChannelBufferSize   int           `yaml:"channel_buffer_size" env-default:"100"`
+		HandleClientTimeout time.Duration `yaml:"handle_timeout" env-default:"10s"`
 	}
 
 	OperatorRepo struct {
 		APIURL     string        `yaml:"api_url"`
-		APITimeout time.Duration `yaml:"api_timeout"`
+		APITimeout time.Duration `yaml:"api_timeout" env-default:"10s"`
 		NoVerify   bool          `yaml:"no_verify"`
+		Operators  []string      `yaml:"operators"` // If defined api will not be used
 	}
 
 	PubSubConfig struct {
-		PublishQueueSize    uint `yaml:"publish_queue_size"`
-		SubscriberQueueSize uint `yaml:"subscriber_queue_size"`
+		PublishQueueSize    uint `yaml:"publish_queue_size" env-default:"100"`
+		SubscriberQueueSize uint `yaml:"subscriber_queue_size" env-default:"100"`
 	}
 
 	VoipAdapterConfig struct {
-		DialTimeout       time.Duration `yaml:"dial_timeout"`
-		DialContext       string        `yaml:"dial_context"`
-		DialTemplate      string        `yaml:"dial_template"` // e.g. PJSIP/%s@context, %s - operator number
-		DialExten         string        `yaml:"dial_to_exten"` // Originate second leg
-		VarClientChannel  string        `yaml:"var_client_channel"`
-		VarClientID       string        `yaml:"var_client_id"`
-		VarOperatorNumber string        `yaml:"var_operator_number"`
+		DialTimeout time.Duration `yaml:"dial_timeout" env-default:"10s"`
+		DialContext string        `yaml:"dial_context" env-default:"default"`
+		DialExten   string        `yaml:"dial_exten" env-default:"s"`
+		// e.g. PJSIP/%s@context, %s - operator number
+		DialTemplate string `yaml:"dial_template" env-default:"PJSIP/%s@default"`
+		// DialExten         string `yaml:"dial_to_exten"` // Originate second leg
+		VarClientChannel  string `yaml:"var_client_channel" env-default:"CLIENT_CHANNEL"`
+		VarClientID       string `yaml:"var_client_id" env-default:"CLIENT"`
+		VarOperatorNumber string `yaml:"var_operator_number" env-default:"OPERATOR_NUMBER"`
+	}
+
+	AmiConfig struct {
+		ActionTimeout     time.Duration     `yaml:"action_timeout" env-default:"10s"`
+		ConnectTimeout    time.Duration     `yaml:"connect_timeout" env-default:"10s"`
+		ReconnectInterval time.Duration     `yaml:"reconnect_interval" env-default:"30s"`
+		ReaderBuffer      uint              `yaml:"reader_buffer" env-default:"100"`
+		PSConfig          PubSubConfig      `yaml:"pubsub"`
+		Servers           []AmiServerConfig `yaml:"servers"`
 	}
 
 	AmiServerConfig struct {
 		Host              string        `yaml:"host"`
-		Port              int           `yaml:"port"`
+		Port              int           `yaml:"port" env-default:"5038"` //FIXME: env-default does not work
 		Username          string        `yaml:"username"`
 		Secret            string        `yaml:"secret"`
-		DialTimeout       time.Duration `yaml:"-"`
+		ConnectTimeout    time.Duration `yaml:"-"`
 		ActionTimeout     time.Duration `yaml:"-"`
 		ReconnectInterval time.Duration `yaml:"-"`
 		ReaderBuffer      uint          `yaml:"-"`
 	}
 
-	AmiConfig struct {
-		DialTimeout       time.Duration     `yaml:"dial_timeout"`
-		ActionTimeout     time.Duration     `yaml:"action_timeout"`
-		ReconnectInterval time.Duration     `yaml:"reconnect_interval"`
-		ReaderBuffer      uint              `yaml:"reader_buffer"`
-		PSConfig          PubSubConfig      `yaml:"pubsub"`
-		Servers           []AmiServerConfig `yaml:"servers"`
-	}
-
 	DialerConfig struct {
-		CheckInterval             time.Duration `yaml:"check_interval"`
-		DialToAllOperatorsTimeout time.Duration `yaml:"dial_to_all_operators_timeout"`
-		DialPause                 time.Duration `yaml:"dial_pause"`
-		DialTimeout               time.Duration `yaml:dial_timeout"`
+		CheckInterval             time.Duration `yaml:"check_interval" env-default:"30s"`
+		DialToAllOperatorsTimeout time.Duration `yaml:"dial_to_all_operators_timeout" env-default:"30m"`
+		DialPause                 time.Duration `yaml:"dial_pause" env-default:"20s"`
 	}
 )
 
-// TODO: Fill AmiServerConfig after load
-// func (c *AmiServerConfig) FillValues(amiCfg *AmiConfig) {
-// 	c.DialTimeout = amiCfg.DialTimeout
-// 	c.ActionTimeout = amiCfg.ActionTimeout
-// 	c.ReconnectInterval = amiCfg.ReconnectInterval
-// 	c.ReaderBuffer = amiCfg.ReaderBuffer
-// }
-
 func New(fileName string) (*Config, error) {
-	panic("not implemented")
+	var (
+		cfg Config
+		err error
+	)
+
+	if _, err2 := os.Stat(fileName); err2 == nil {
+		err = cleanenv.ReadConfig(fileName, &cfg)
+	} else {
+		err = cleanenv.ReadEnv(&cfg)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(cfg.AmiConfig.Servers) < 1 {
+		return nil, fmt.Errorf("you must assign at least one ami server")
+	}
+
+	for i := range cfg.AmiConfig.Servers {
+		cfg.AmiConfig.Servers[i].ConnectTimeout = cfg.AmiConfig.ConnectTimeout
+		cfg.AmiConfig.Servers[i].ActionTimeout = cfg.AmiConfig.ActionTimeout
+		cfg.AmiConfig.Servers[i].ReconnectInterval = cfg.AmiConfig.ReconnectInterval
+		cfg.AmiConfig.Servers[i].ReaderBuffer = cfg.AmiConfig.ReaderBuffer
+		if cfg.AmiConfig.Servers[i].Port == 0 {
+			cfg.AmiConfig.Servers[i].Port = 5038
+		}
+	}
+
+	return &cfg, err
 }

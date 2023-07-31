@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"github.com/jgivc/vapp/internal/entity"
 )
@@ -23,7 +22,7 @@ type (
 		Playback(ctx context.Context, client *entity.Client, fileName string) error
 		StartMOH(ctx context.Context, client *entity.Client) error
 		StopMOH(ctx context.Context, client *entity.Client) error
-		Dial(ctx context.Context, client *entity.Client, operator *entity.Operator, dialTimeout time.Duration) error
+		Dial(ctx context.Context, client *entity.Client, operator *entity.Operator) error
 		Hangup(ctx context.Context, client *entity.Client) error
 	}
 

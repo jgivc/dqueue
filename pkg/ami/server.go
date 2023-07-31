@@ -75,7 +75,7 @@ type amiServerImpl struct {
 }
 
 func (s *amiServerImpl) connect(ctx context.Context) (net.Conn, error) {
-	ctx2, cancel := context.WithTimeout(ctx, s.cfg.DialTimeout)
+	ctx2, cancel := context.WithTimeout(ctx, s.cfg.ConnectTimeout)
 	defer cancel()
 
 	return s.cf.Connect(ctx2, s.addr)

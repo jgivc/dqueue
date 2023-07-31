@@ -57,9 +57,19 @@ type OperatorRepo struct {
 	mux       sync.Mutex
 	apiClient APIClient
 	operators map[string]*entity.Operator
+	cfg       *config.OperatorRepo
 }
 
 func (r *OperatorRepo) load(ctx context.Context) ([]*entity.Operator, error) {
+	if len(r.cfg.Operators) > 0 {
+		operators := make([]*entity.Operator, len(r.cfg.Operators))
+		for i, num := range r.cfg.Operators {
+			operators[i] = entity.NewOperator(num, "", "")
+		}
+
+		return operators, nil
+	}
+
 	resp, err := r.apiClient.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot call web api: %w", err)
@@ -124,10 +134,12 @@ func (r *OperatorRepo) SetBusy(number string, busy bool) error {
 	if _, exists := r.operators[number]; exists {
 		r.operators[number].SetBusy(busy)
 
-		return nil
+		// return nil
 	}
 
-	return fmt.Errorf("operator %s does not exists: %w", number, errOperatorRepo)
+	// return fmt.Errorf("operator %s does not exists: %w", number, errOperatorRepo)
+
+	return nil
 }
 
 func (r *OperatorRepo) Close() {
@@ -145,6 +157,7 @@ func NewOperatorRepo(cfg *config.OperatorRepo) *OperatorRepo {
 			apiTimeout: cfg.APITimeout,
 		},
 		operators: make(map[string]*entity.Operator),
+		cfg:       cfg,
 	}
 }
 

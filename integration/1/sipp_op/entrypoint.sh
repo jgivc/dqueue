@@ -8,6 +8,6 @@ if [ $? -ne 0 ]; then
     exit 20
 fi
 
-#sipp $1 -sf uas.xml -inf operator_accounts.csv -infindex operator_accounts.csv 0 -key line $INDEX -d $3
-sipp $1 -sf uas.xml -inf operator_accounts.csv -infindex operator_accounts.csv 0 -key line $INDEX
+sipp $1 -sf uas.xml -inf operator_accounts.csv -infindex operator_accounts.csv 0 -key line $INDEX -d $3 -trace_logs
+# sipp $1 -sf uas.xml -inf operator_accounts.csv -infindex operator_accounts.csv 0 -key line $INDEX
 

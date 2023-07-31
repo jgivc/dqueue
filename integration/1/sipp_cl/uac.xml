@@ -87,6 +87,43 @@
         ]]>
     </send>
 
+    <recv request="INVITE" crlf="true" rrs="true" timeout="1000" ontimeout="2" next="1">
+        <action>
+            <ereg regexp="(.*)" search_in="body" assign_to="3" />
+            <log message="### 1"/>
+        </action>
+    </recv>
+
+    <label id="1" />
+
+    <send retrans="500">
+        <![CDATA[
+            SIP/2.0 200 OK
+            [last_Via:]
+            [last_Record-Route:]
+            [last_From:]
+            [last_To:];tag=[pid]SIPpTag01[call_number]
+            [last_Call-ID:]
+            [last_CSeq:]
+            Contact: <sip:[field0 line="[line]"]@[local_ip]:[local_port]>
+            Content-Type: application/sdp
+            Content-Length: [len]
+
+            [$3]
+        ]]>
+        <action>
+            <log message="### 2"/>
+        </action>
+    </send>
+
+    <recv request="ACK" rtd="true" crlf="true">
+        <action>
+            <log message="### 3"/>
+        </action>
+    </recv>
+
+    <label id="2" />
+
     <recv request="BYE">
     </recv>
 

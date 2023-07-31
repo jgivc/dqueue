@@ -1,0 +1,15 @@
+ami:
+  servers:
+    - host: 172.18.0.2
+      username: admin
+      secret: P@$$w0rD!
+    # - host: 172.18.0.3
+    #   username: admin
+    #   secret: P@$$w0rD!
+voip_adapter:
+  dial_template: PJSIP/kamailio/sip:%s@office.voip
+  dial_context: queue-test
+  dial_exten: s-CONNECT
+operator_repo:
+  operators:
+    - 2003

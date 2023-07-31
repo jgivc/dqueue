@@ -95,11 +95,12 @@ func (s *RrStrategy) Dial(ctx context.Context, client *entity.Client, operators 
 		default:
 		}
 
-		if err := s.voip.Dial(ctx2, client, op, s.cfg.DialTimeout); err != nil {
+		if err := s.voip.Dial(ctx2, client, op); err != nil {
 			s.logger.Info("msg", "Dial operator failed", "client", client.Number, "operator", op.Number, "error", err)
 			continue
 		}
 
+		s.logger.Info("msg", "Dial success", "client", client.Number, "operator", op.Number)
 		return nil
 	}
 }

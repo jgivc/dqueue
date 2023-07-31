@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/entity"
@@ -27,7 +26,7 @@ type VoipAdapter struct {
 }
 
 func (v *VoipAdapter) Answer(ctx context.Context, client *entity.Client) error {
-	dto, ok := client.Data.(ClientDto)
+	dto, ok := client.Data.(*ClientDto)
 	if !ok {
 		return errCannotConvert
 	}
@@ -36,7 +35,7 @@ func (v *VoipAdapter) Answer(ctx context.Context, client *entity.Client) error {
 }
 
 func (v *VoipAdapter) Playback(ctx context.Context, client *entity.Client, fileName string) error {
-	dto, ok := client.Data.(ClientDto)
+	dto, ok := client.Data.(*ClientDto)
 	if !ok {
 		return errCannotConvert
 	}
@@ -45,7 +44,7 @@ func (v *VoipAdapter) Playback(ctx context.Context, client *entity.Client, fileN
 }
 
 func (v *VoipAdapter) StartMOH(ctx context.Context, client *entity.Client) error {
-	dto, ok := client.Data.(ClientDto)
+	dto, ok := client.Data.(*ClientDto)
 	if !ok {
 		return errCannotConvert
 	}
@@ -54,7 +53,7 @@ func (v *VoipAdapter) StartMOH(ctx context.Context, client *entity.Client) error
 }
 
 func (v *VoipAdapter) StopMOH(ctx context.Context, client *entity.Client) error {
-	dto, ok := client.Data.(ClientDto)
+	dto, ok := client.Data.(*ClientDto)
 	if !ok {
 		return errCannotConvert
 	}
@@ -63,7 +62,7 @@ func (v *VoipAdapter) StopMOH(ctx context.Context, client *entity.Client) error 
 }
 
 func (v *VoipAdapter) Hangup(ctx context.Context, client *entity.Client) error {
-	dto, ok := client.Data.(ClientDto)
+	dto, ok := client.Data.(*ClientDto)
 	if !ok {
 		return errCannotConvert
 	}
@@ -71,14 +70,13 @@ func (v *VoipAdapter) Hangup(ctx context.Context, client *entity.Client) error {
 	return v.ami.Hangup(ctx, dto.Host, dto.Channel, hangupCause)
 }
 
-func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client,
-	operator *entity.Operator, dialTimeout time.Duration) error {
-	dto, ok := client.Data.(ClientDto)
+func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operator *entity.Operator) error {
+	dto, ok := client.Data.(*ClientDto)
 	if !ok {
 		return errCannotConvert
 	}
 
-	ctx2, cancel := context.WithTimeout(ctx, dialTimeout)
+	ctx2, cancel := context.WithTimeout(ctx, v.cfg.DialTimeout)
 	defer cancel()
 
 	// TODO: Watch for BridgeEnter client and operator then return.
@@ -87,6 +85,7 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client,
 			return false
 		}
 		if e.IsEvent() && e.Event() == events.BridgeEnter {
+			fmt.Println(e)
 			if e.Get(fields.CallerIDNum) == client.Number {
 				return e.Get(fields.ConnectedLineNum) == operator.Number
 			}
@@ -102,8 +101,11 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client,
 
 	err := v.ami.Originate(dto.Host, fmt.Sprintf(v.cfg.DialTemplate, operator.Number)).
 		Context(v.cfg.DialContext).
+		Exten(v.cfg.DialExten).
+		// Application("Bridge").
+		// Data(dto.Channel).
 		CallerID(client.Number).
-		Timeout(dialTimeout).
+		Timeout(v.cfg.DialTimeout).
 		Variable(v.cfg.VarClientChannel, dto.Channel).
 		Variable(v.cfg.VarClientID, client.ID).
 		Variable(v.cfg.VarOperatorNumber, operator.Number).
@@ -121,8 +123,9 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client,
 	}
 }
 
-func NewVoipAdapter(a ami.Ami) *VoipAdapter {
+func NewVoipAdapter(cfg *config.VoipAdapterConfig, a ami.Ami) *VoipAdapter {
 	return &VoipAdapter{
 		ami: a,
+		cfg: cfg,
 	}
 }

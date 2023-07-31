@@ -65,7 +65,8 @@ func (r *ClientRepo) Remove(_ string, data interface{}) error {
 	defer r.mux.Unlock()
 
 	if _, exists := r.clients[id]; !exists {
-		return fmt.Errorf("cannot find client: %s, %w", id, errRepoError)
+		// return fmt.Errorf("cannot find client: %s, %w", id, errRepoError)
+		return nil
 	}
 
 	r.clients[id].Close()

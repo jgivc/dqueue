@@ -41,7 +41,7 @@ func (h *ClientHandler) Register(ps pubSub) {
 		}()
 
 		for e := range subs.Events() {
-			dto := adapter.ClientDto{
+			dto := &adapter.ClientDto{
 				Host:    e.Host,
 				Channel: e.Channel,
 			}

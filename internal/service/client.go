@@ -31,12 +31,12 @@ type ClientService struct {
 	dialer              Dialer
 	logger              Logger
 	handleClientTimeout time.Duration
-	ch                  chan clientDto
+	ch                  chan *clientDto
 }
 
 func (s *ClientService) NewClient(number string, data interface{}) error {
 	select {
-	case s.ch <- clientDto{
+	case s.ch <- &clientDto{
 		reqType: NewClient,
 		number:  number,
 		data:    data,
@@ -50,7 +50,7 @@ func (s *ClientService) NewClient(number string, data interface{}) error {
 
 func (s *ClientService) Hangup(number string, data interface{}) error {
 	select {
-	case s.ch <- clientDto{
+	case s.ch <- &clientDto{
 		reqType: Hangup,
 		number:  number,
 		data:    data,
@@ -114,20 +114,20 @@ func (s *ClientService) handleClient(ctx context.Context, client *entity.Client)
 		return
 	default:
 		if err := s.voip.Answer(clientCtx, client); err != nil {
-			s.logger.Error("msg", "Cannot answer to client", "client", client)
+			s.logger.Error("msg", "Cannot answer to client", "client", client, "error", err)
 
 			return
 		}
 
 		if err := s.voip.StartMOH(clientCtx, client); err != nil {
-			s.logger.Error("msg", "Cannot start MOH", "client", client)
+			s.logger.Error("msg", "Cannot start MOH", "client", client, "error", err)
 
 			return
 		}
 	}
 
 	if err := s.queue.Push(client); err != nil {
-		s.logger.Error("msg", "Cannot push client to queue", "client", client)
+		s.logger.Error("msg", "Cannot push client to queue", "client", client, "error", err)
 		return
 	}
 
@@ -143,6 +143,6 @@ func NewClientService(cfg *config.ClientService, voip VoipAdapter, queue Queue, 
 		dialer:              dialer,
 		logger:              logger,
 		handleClientTimeout: cfg.HandleClientTimeout,
-		ch:                  make(chan clientDto, cfg.ChannelBufferSize),
+		ch:                  make(chan *clientDto, cfg.ChannelBufferSize),
 	}
 }
