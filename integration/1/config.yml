@@ -1,7 +1,7 @@
 ami:
   servers:
     # - host: asterisk1
-    - host: 172.18.0.4
+    - host: 172.18.0.2
       username: admin
       secret: P@$$w0rD!
     # - host: asterisk2

@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	"github.com/jgivc/vapp/internal/entity"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
@@ -19,6 +21,7 @@ type Queue struct {
 	maxClients int
 	mux        sync.Mutex
 	clients    *list.List
+	promLength prometheus.Gauge
 }
 
 func (q *Queue) isFull() bool {
@@ -56,6 +59,7 @@ func (q *Queue) Push(client *entity.Client) error {
 	}
 
 	q.clients.PushBack(client)
+	q.promLength.Inc()
 
 	return nil
 }
@@ -72,6 +76,8 @@ func (q *Queue) Pop() (*entity.Client, error) {
 	if el == nil {
 		return nil, fmt.Errorf("cannot get client from list: %w", errQueue)
 	}
+
+	q.promLength.Dec()
 
 	return el.(*entity.Client), nil
 }
@@ -95,5 +101,9 @@ func NewQueue(maxClients int) *Queue {
 	return &Queue{
 		maxClients: maxClients,
 		clients:    list.New(),
+		promLength: promauto.NewGauge(prometheus.GaugeOpts{
+			Name: "app_queue_len",
+			Help: "Queue length gauge",
+		}),
 	}
 }

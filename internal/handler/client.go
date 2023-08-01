@@ -12,6 +12,8 @@ import (
 	"github.com/jgivc/vapp/pkg/ami/keys"
 	"github.com/jgivc/vapp/pkg/ami/types"
 	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 const (
@@ -29,8 +31,10 @@ type clientService interface {
 }
 
 type ClientHandler struct {
-	srv    clientService
-	logger logger.Logger
+	srv                         clientService
+	logger                      logger.Logger
+	promNewClientsCounter       prometheus.Counter
+	promNewClientsErrorsCounter prometheus.Counter
 }
 
 func (h *ClientHandler) Register(ps pubSub) {
@@ -57,7 +61,6 @@ func (h *ClientHandler) Register(ps pubSub) {
 
 			switch e.Get(keys.Event) {
 			case events.AsyncAGIStart:
-				// fmt.Println(e)
 				args, err := parseArgs(e.Get(fields.Env))
 				if err != nil {
 					h.logger.Error("msg", "Cannot parse AsyncAGIStart env args",
@@ -68,7 +71,10 @@ func (h *ClientHandler) Register(ps pubSub) {
 					if err2 := h.srv.NewClient(e.CallerIDNum, dto); err2 != nil {
 						h.logger.Error("msg", "Cannot handle client", "number",
 							e.CallerIDNum, "host", e.Host, "unique_id", e.Get(fields.Uniqueid), "error", err2)
+						h.promNewClientsErrorsCounter.Inc()
+						continue
 					}
+					h.promNewClientsCounter.Inc()
 				} else {
 					h.logger.Info("msg", "Operator channel", "number", e.CallerIDNum, "host", e.Host, "unique_id",
 						e.Get(fields.Uniqueid), "client_id", args[0])
@@ -118,5 +124,13 @@ func NewClientHandler(srv clientService, logger logger.Logger) *ClientHandler {
 	return &ClientHandler{
 		srv:    srv,
 		logger: logger,
+		promNewClientsCounter: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "app_clients_requests_total",
+			Help: "New clients request total",
+		}),
+		promNewClientsErrorsCounter: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "app_clients_handle_errors_total",
+			Help: "New clients handle error",
+		}),
 	}
 }

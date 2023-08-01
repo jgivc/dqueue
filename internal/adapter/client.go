@@ -7,6 +7,8 @@ import (
 
 	"github.com/jgivc/vapp/internal/entity"
 	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
@@ -18,9 +20,10 @@ type GetUniqueID interface {
 }
 
 type ClientRepo struct {
-	mux     sync.Mutex
-	clients map[string]*entity.Client
-	logger  logger.Logger
+	mux              sync.Mutex
+	clients          map[string]*entity.Client
+	logger           logger.Logger
+	promClientsGauge prometheus.Gauge
 }
 
 func (r *ClientRepo) New(number string, data interface{}) (*entity.Client, error) {
@@ -50,6 +53,7 @@ func (r *ClientRepo) New(number string, data interface{}) (*entity.Client, error
 	r.logger.Info("msg", "New client", "number", client.Number, "id", client.ID)
 
 	r.clients[id] = &client
+	r.promClientsGauge.Inc()
 
 	return &client, nil
 }
@@ -78,6 +82,7 @@ func (r *ClientRepo) Remove(_ string, data interface{}) error {
 
 	r.clients[id].Close()
 	delete(r.clients, id)
+	r.promClientsGauge.Dec()
 
 	return nil
 }
@@ -97,5 +102,9 @@ func NewClientRepo(logger logger.Logger) *ClientRepo {
 	return &ClientRepo{
 		clients: make(map[string]*entity.Client),
 		logger:  logger,
+		promClientsGauge: promauto.NewGauge(prometheus.GaugeOpts{
+			Name: "app_client_repo_clients_length",
+			Help: "Clients count in clients repo",
+		}),
 	}
 }

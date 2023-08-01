@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"net/http"
-	_ "net/http/pprof"
 
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/adapter"
@@ -16,6 +15,7 @@ import (
 	"github.com/jgivc/vapp/internal/service"
 	"github.com/jgivc/vapp/pkg/ami"
 	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func Run(cfg *config.Config, logger logger.Logger) {
@@ -50,6 +50,8 @@ func Run(cfg *config.Config, logger logger.Logger) {
 		Addr:              cfg.ListenAddr,
 		ReadHeaderTimeout: time.Second,
 	}
+
+	http.Handle(cfg.MetricPath, promhttp.Handler())
 
 	if err := httpServer.ListenAndServe(); err != nil {
 		logger.Fatal("msg", "HTTP server ListenAndServe Error", "error", err)
