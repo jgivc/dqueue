@@ -149,9 +149,6 @@
       Max-Forwards: 70
       Content-Length: 0
     ]]>
-    <action>
-      <log message="### 7"/>
-    </action>
   </send>
 
   <!-- We should get "OK" -->
