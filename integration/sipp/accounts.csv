@@ -1,8 +1,0 @@
-SEQUENTIAL
-# user, domain, authentication
-1001;127.0.0.1;[authentication username=1001 password=1001]
-1002;127.0.0.1;[authentication username=1002 password=1002]
-1003;127.0.0.1;[authentication username=1003 password=1003]
-1004;127.0.0.1;[authentication username=1004 password=1004]
-1005;127.0.0.1;[authentication username=1005 password=1005]
-

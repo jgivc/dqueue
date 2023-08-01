@@ -10,8 +10,12 @@ COPY --from=modules /go/pkg /go/pkg
 COPY . /app
 WORKDIR /app
 
-RUN go env -w CGO_ENABLED=0
-RUN go env -w GOOS=linux
-RUN go env -w GOARCH=amd64
+RUN go env -w CGO_ENABLED=0 && \
+    go env -w GOOS=linux && \
+    go env -w GOARCH=amd64 && \
+    apk add --update-cache make && \
+    make
 
-CMD ["go", "test", "-v", "-count=1", "./integration/...", "-timeout", "1m", "-run", "^TestAmiIntegrationTestSuite$"]
+
+CMD ["./vapp", "-c", "integration/config.yml"]
+
