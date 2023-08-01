@@ -1,11 +1,11 @@
 ami:
   servers:
-    - host: asterisk1
-    # - host: 172.18.0.4
+    # - host: asterisk1
+    - host: 172.18.0.4
       username: admin
       secret: P@$$w0rD!
-    - host: asterisk2
-    # - host: 172.18.0.3
+    # - host: asterisk2
+    - host: 172.18.0.3
       username: admin
       secret: P@$$w0rD!
 voip_adapter:

@@ -62,30 +62,30 @@ services:
       kamailio:
         condition: service_healthy
 
-  app:
-    build:
-      context: .
-      dockerfile: integration/1/app/Dockerfile
-    container_name: app
-    healthcheck:
-      test: ["CMD-SHELL", "test $(netstat -an | grep 5038 | wc -l) -eq 2"]
-      interval: 10s
-      timeout: 2s
-      retries: 10
-    depends_on:
-      sipp_op1:
-        condition: service_healthy
-      sipp_op2:
-        condition: service_healthy
-      sipp_op3:
-        condition: service_healthy
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: integration/1/app/Dockerfile
+  #   container_name: app
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "test $(netstat -an | grep 5038 | wc -l) -eq 2"]
+  #     interval: 10s
+  #     timeout: 2s
+  #     retries: 10
+  #   depends_on:
+  #     sipp_op1:
+  #       condition: service_healthy
+  #     sipp_op2:
+  #       condition: service_healthy
+  #     sipp_op3:
+  #       condition: service_healthy
 
-  sipp_cl:
-    build: integration/1/sipp_cl
-    container_name: sipp_cl
-    # command: kamailio -sf uac.xml -s 2003 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 10
-    command: kamailio -sf uac.xml -s 3000 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 100
-    depends_on:
-      app:
-        condition: service_healthy
+  # sipp_cl:
+  #   build: integration/1/sipp_cl
+  #   container_name: sipp_cl
+  #   # command: kamailio -sf uac.xml -s 2003 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 10
+  #   command: kamailio -sf uac.xml -s 3000 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 100
+  #   depends_on:
+  #     app:
+  #       condition: service_healthy
       
