@@ -24,6 +24,8 @@ type (
 		StopMOH(ctx context.Context, client *entity.Client) error
 		Dial(ctx context.Context, client *entity.Client, operator *entity.Operator) error
 		Hangup(ctx context.Context, client *entity.Client) error
+		Operator(id, channel string) error
+		Close()
 	}
 
 	ClientRepo interface {

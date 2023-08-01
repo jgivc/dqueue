@@ -18,6 +18,8 @@ type (
 		StopMOH(ctx context.Context, host string, channel string) error
 		Originate(host string, channel string) OriginateBuilder
 		Hangup(ctx context.Context, host string, channel string, cause int) error
+		Bridge(ctx context.Context, host string, channel1, channel2, tone string) error
+		Setvar(ctx context.Context, host string, channel, variable, value string) error
 	}
 
 	Filter func(e *Event) bool

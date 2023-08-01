@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	// _ "net/http/pprof"
+
 	"github.com/jgivc/vapp/config"
 	"github.com/jgivc/vapp/internal/adapter"
 	"github.com/jgivc/vapp/internal/handler"
@@ -42,6 +44,15 @@ func Run(cfg *config.Config, logger logger.Logger) {
 	operatorHandler := handler.NewOperatorHandler(operatorService, logger)
 	operatorHandler.Register(ami)
 
+	// httpServer := http.Server{
+	// 	Addr:              cfg.ListenAddr,
+	// 	ReadHeaderTimeout: time.Second,
+	// }
+
+	// if err := httpServer.ListenAndServe(); err != nil {
+	// 	logger.Fatal("msg", "HTTP server ListenAndServe Error", "error", err)
+	// }
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c,
 		syscall.SIGINT,
@@ -52,6 +63,10 @@ func Run(cfg *config.Config, logger logger.Logger) {
 
 	cancel()
 
+	// if err := httpServer.Shutdown(context.Background()); err != nil {
+	// 	logger.Error("msg", "Cannot shutdown http server", "error", err)
+	// }
+	voip.Close()
 	operatorRepo.Close()
 	operatorRepo.Close()
 	clientRepo.Close()

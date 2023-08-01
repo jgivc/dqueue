@@ -285,3 +285,25 @@ func (a *ami) Originate(host string, channel string) OriginateBuilder {
 		ap:   ac,
 	}
 }
+
+func (a *ami) Bridge(ctx context.Context, host string, channel1, channel2, tone string) error {
+	ac := newDefaultAction(actionBridge, a.cfg.ActionTimeout)
+	ac.addField(keyChannel1, channel1)
+	ac.addField(keyChannel2, channel2)
+	ac.addField(keyTone, tone)
+
+	_, err := a.runAction(ctx, host, ac)
+
+	return err
+}
+
+func (a *ami) Setvar(ctx context.Context, host string, channel, variable, value string) error {
+	ac := newDefaultAction(actionSetvar, a.cfg.ActionTimeout)
+	ac.addField(keyChannel, channel)
+	ac.addField(fieldVariable, variable)
+	ac.addField(fieldValue, value)
+
+	_, err := a.runAction(ctx, host, ac)
+
+	return err
+}

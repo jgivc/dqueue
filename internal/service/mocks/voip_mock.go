@@ -36,7 +36,7 @@ func (m *VoipMock) StopMOH(ctx context.Context, client *entity.Client) error {
 }
 
 func (m *VoipMock) Dial(ctx context.Context, client *entity.Client, operator *entity.Operator) error {
-	args := m.Called(ctx, client)
+	args := m.Called(ctx, client, operator)
 
 	return args.Error(0)
 }
@@ -45,4 +45,14 @@ func (m *VoipMock) Hangup(ctx context.Context, client *entity.Client) error {
 	args := m.Called(ctx, client)
 
 	return args.Error(0)
+}
+
+func (m *VoipMock) Operator(id, channel string) error {
+	args := m.Called(id, channel)
+
+	return args.Error(0)
+}
+
+func (m *VoipMock) Close() {
+	m.Called()
 }

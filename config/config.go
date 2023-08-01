@@ -10,6 +10,7 @@ import (
 
 type (
 	Config struct {
+		// ListenAddr        string            `yaml:"listen_addr" env-default:"*8560"`
 		QueueConfig       QueueConfig       `yaml:"queue"`
 		ClientService     ClientService     `yaml:"client_service"`
 		OperatorRepo      OperatorRepo      `yaml:"operator_repo"`

@@ -134,6 +134,10 @@ func (s *ClientService) handleClient(ctx context.Context, client *entity.Client)
 	s.dialer.Notify()
 }
 
+func (s *ClientService) Operator(id, channel string) error {
+	return s.voip.Operator(id, channel)
+}
+
 func NewClientService(cfg *config.ClientService, voip VoipAdapter, queue Queue, repo ClientRepo,
 	dialer Dialer, logger Logger) *ClientService {
 	return &ClientService{
