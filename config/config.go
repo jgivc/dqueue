@@ -44,14 +44,14 @@ type (
 
 	VoipAdapterConfig struct {
 		DialTimeout time.Duration `yaml:"dial_timeout" env-default:"10s"`
-		DialContext string        `yaml:"dial_context" env-default:"default"`
-		DialExten   string        `yaml:"dial_exten" env-default:"s"`
+		// DialContext string        `yaml:"dial_context" env-default:"default"`
+		// DialExten   string        `yaml:"dial_exten" env-default:"s"`
 		// e.g. PJSIP/%s@context, %s - operator number
 		DialTemplate string `yaml:"dial_template" env-default:"PJSIP/%s@default"`
 		// DialExten         string `yaml:"dial_to_exten"` // Originate second leg
-		VarClientChannel  string `yaml:"var_client_channel" env-default:"CLIENT_CHANNEL"`
-		VarClientID       string `yaml:"var_client_id" env-default:"CLIENT"`
-		VarOperatorNumber string `yaml:"var_operator_number" env-default:"OPERATOR_NUMBER"`
+		// VarClientChannel  string `yaml:"var_client_channel" env-default:"CLIENT_CHANNEL"`
+		// VarClientID       string `yaml:"var_client_id" env-default:"CLIENT"`
+		// VarOperatorNumber string `yaml:"var_operator_number" env-default:"OPERATOR_NUMBER"`
 	}
 
 	AmiConfig struct {

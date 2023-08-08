@@ -17,5 +17,5 @@ RUN go env -w CGO_ENABLED=0 && \
     make
 
 
-CMD ["./vapp", "-c", "integration/config.yml"]
+CMD ["./dqueue", "-c", "integration/config.yml"]
 

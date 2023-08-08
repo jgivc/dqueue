@@ -1,9 +1,9 @@
 .DEFAULT_GOAL := default
 
-app_name = vapp
+app_name = dqueue
 
 e2e:
-	docker compose up --build --abort-on-container-exit --exit-code-from sipp_cl
+	docker compose -f integration/docker-compose.yml up --build --abort-on-container-exit --exit-code-from sipp_cl
 
 default:
 	go build -o $(app_name) cmd/*.go

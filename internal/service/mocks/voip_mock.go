@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/dqueue/internal/entity"
 	"github.com/stretchr/testify/mock"
 )
 

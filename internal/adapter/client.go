@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/jgivc/vapp/internal/entity"
-	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/jgivc/dqueue/internal/entity"
+	"github.com/jgivc/dqueue/pkg/logger"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )

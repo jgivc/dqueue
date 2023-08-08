@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/internal/entity"
-	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/internal/entity"
+	"github.com/jgivc/dqueue/pkg/logger"
 )
 
 // var (

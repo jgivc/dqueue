@@ -3,8 +3,8 @@ package adapter_test
 import (
 	"testing"
 
-	"github.com/jgivc/vapp/internal/adapter"
-	"github.com/jgivc/vapp/internal/adapter/mocks"
+	"github.com/jgivc/dqueue/internal/adapter"
+	"github.com/jgivc/dqueue/internal/adapter/mocks"
 	"github.com/stretchr/testify/suite"
 )
 

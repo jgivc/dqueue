@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/dqueue/internal/entity"
 )
 
 type (

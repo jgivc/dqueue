@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/internal/entity"
 )
 
 const (

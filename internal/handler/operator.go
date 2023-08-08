@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"github.com/jgivc/vapp/pkg/ami"
-	"github.com/jgivc/vapp/pkg/ami/events"
-	"github.com/jgivc/vapp/pkg/ami/fields"
-	"github.com/jgivc/vapp/pkg/ami/keys"
-	"github.com/jgivc/vapp/pkg/ami/types"
-	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/jgivc/dqueue/pkg/ami"
+	"github.com/jgivc/dqueue/pkg/ami/events"
+	"github.com/jgivc/dqueue/pkg/ami/fields"
+	"github.com/jgivc/dqueue/pkg/ami/keys"
+	"github.com/jgivc/dqueue/pkg/ami/types"
+	"github.com/jgivc/dqueue/pkg/logger"
 )
 
 type operatorService interface {

@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/internal/entity"
-	"github.com/jgivc/vapp/internal/service"
-	"github.com/jgivc/vapp/internal/service/mocks"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/internal/entity"
+	"github.com/jgivc/dqueue/internal/service"
+	"github.com/jgivc/dqueue/internal/service/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/dqueue/internal/entity"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )

@@ -8,9 +8,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/jgivc/vapp/internal/adapter"
-	"github.com/jgivc/vapp/internal/adapter/mocks"
-	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/dqueue/internal/adapter"
+	"github.com/jgivc/dqueue/internal/adapter/mocks"
+	"github.com/jgivc/dqueue/internal/entity"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

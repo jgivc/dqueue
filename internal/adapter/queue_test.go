@@ -3,8 +3,8 @@ package adapter_test
 import (
 	"testing"
 
-	"github.com/jgivc/vapp/internal/adapter"
-	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/dqueue/internal/adapter"
+	"github.com/jgivc/dqueue/internal/entity"
 	"github.com/stretchr/testify/suite"
 )
 

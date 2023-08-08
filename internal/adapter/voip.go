@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/internal/entity"
-	"github.com/jgivc/vapp/pkg/ami"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/internal/entity"
+	"github.com/jgivc/dqueue/pkg/ami"
 )
 
 const (
@@ -92,37 +92,11 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operator 
 	ctx2, cancel := context.WithTimeout(ctx, v.cfg.DialTimeout)
 	defer cancel()
 
-	// // TODO: Watch for BridgeEnter client and operator then return.
-	// sub := v.ami.Subscribe(func(e *ami.Event) bool {
-	// 	if e.Host != dto.Host {
-	// 		return false
-	// 	}
-	// 	if e.IsEvent() && e.Event() == events.BridgeEnter {
-	// 		// fmt.Println(e)
-	// 		if e.Get(fields.CallerIDNum) == client.Number {
-	// 			return e.Get(fields.ConnectedLineNum) == operator.Number
-	// 		}
-
-	// 		if e.Get(fields.ConnectedLineNum) == client.Number {
-	// 			return e.Get(fields.CallerIDNum) == operator.Number
-	// 		}
-	// 	}
-
-	// 	return false
-	// })
-	// defer sub.Close()
-
 	err2 := v.ami.Originate(dto.Host, fmt.Sprintf(v.cfg.DialTemplate, operator.Number)).
 		Application("agi").
 		Data(fmt.Sprintf("agi:async,%s", client.ID)).
-		// ChannelID(client.ID).
-		// Context(v.cfg.DialContext).
-		// Exten(v.cfg.DialExten).
 		CallerID(client.Number).
 		Timeout(v.cfg.DialTimeout).
-		// Variable(v.cfg.VarClientChannel, dto.Channel).
-		// Variable(v.cfg.VarClientID, client.ID).
-		// Variable(v.cfg.VarOperatorNumber, operator.Number).
 		Async(true).
 		Run(ctx2)
 	if err2 != nil {

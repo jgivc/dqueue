@@ -9,12 +9,12 @@ import (
 
 	"net/http"
 
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/internal/adapter"
-	"github.com/jgivc/vapp/internal/handler"
-	"github.com/jgivc/vapp/internal/service"
-	"github.com/jgivc/vapp/pkg/ami"
-	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/internal/adapter"
+	"github.com/jgivc/dqueue/internal/handler"
+	"github.com/jgivc/dqueue/internal/service"
+	"github.com/jgivc/dqueue/pkg/ami"
+	"github.com/jgivc/dqueue/pkg/logger"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

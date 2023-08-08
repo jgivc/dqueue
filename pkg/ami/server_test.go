@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/internal/service/mocks"
-	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/internal/service/mocks"
+	"github.com/jgivc/dqueue/pkg/logger"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

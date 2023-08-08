@@ -1,18 +1,18 @@
 version: '3'
 services:
   asterisk1:
-    build: integration/asterisk
+    build: asterisk
     container_name: asterisk1
 
   asterisk2:
-    build: integration/asterisk
+    build: asterisk
     container_name: asterisk2
 
   kamailio:
-    build: integration/kamailio
+    build: kamailio
     container_name: kamailio
     volumes:
-      - "./integration/kamailio/etc:/etc/kamailio"
+      - "./kamailio/etc:/etc/kamailio"
     healthcheck:
       test: ["CMD-SHELL", "test $(kamcmd dispatcher.list | grep 'FLAGS: AX' | wc -l) -eq 2"]
       interval: 5s
@@ -24,7 +24,7 @@ services:
           - office.voip
     
   sipp_nois:
-    build: integration/sipp_cl
+    build: sipp_cl
     container_name: sipp_nois
     command: kamailio -sf uac.xml -s 4000 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 2
     depends_on:
@@ -32,7 +32,7 @@ services:
         condition: service_healthy
 
   sipp_op1:
-    build: integration/sipp_op
+    build: sipp_op
     container_name: sipp_op1
     command: kamailio 2003 15000
     healthcheck:
@@ -45,7 +45,7 @@ services:
         condition: service_healthy
 
   sipp_op2:
-    build: integration/sipp_op
+    build: sipp_op
     container_name: sipp_op2
     command: kamailio 2004 5000
     healthcheck:
@@ -58,7 +58,7 @@ services:
         condition: service_healthy
 
   sipp_op3:
-    build: integration/sipp_op
+    build: sipp_op
     container_name: sipp_op3
     command: kamailio 2005 10000
     healthcheck:
@@ -72,7 +72,7 @@ services:
 
   app:
     build:
-      context: .
+      context: ../.
       dockerfile: integration/app/Dockerfile
     container_name: app
     healthcheck:
@@ -89,7 +89,7 @@ services:
         condition: service_healthy
 
   sipp_cl:
-    build: integration/sipp_cl
+    build: sipp_cl
     container_name: sipp_cl
     command: kamailio -sf uac.xml -s 3000 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 4 -m 10
     depends_on:

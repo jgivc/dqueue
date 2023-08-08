@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jgivc/vapp/internal/entity"
+	"github.com/jgivc/dqueue/internal/entity"
 )
 
 type OperatorService struct {

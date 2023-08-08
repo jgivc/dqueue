@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/pkg/logger"
 )
 
 /*

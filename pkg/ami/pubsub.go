@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/pkg/logger"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/pkg/logger"
 )
 
 // type PubSub interface {

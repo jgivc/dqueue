@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/jgivc/vapp/config"
-	"github.com/jgivc/vapp/internal/service/mocks"
+	"github.com/jgivc/dqueue/config"
+	"github.com/jgivc/dqueue/internal/service/mocks"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/yaml.v2"
 )
