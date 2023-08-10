@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/jgivc/dqueue/config"
 	"github.com/jgivc/dqueue/internal/entity"
 	"github.com/jgivc/dqueue/pkg/ami"
@@ -92,11 +93,14 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operator 
 	ctx2, cancel := context.WithTimeout(ctx, v.cfg.DialTimeout)
 	defer cancel()
 
+	channelID := uuid.New().String()
+
 	err2 := v.ami.Originate(dto.Host, fmt.Sprintf(v.cfg.DialTemplate, operator.Number)).
 		Application("agi").
 		Data(fmt.Sprintf("agi:async,%s", client.ID)).
 		CallerID(client.Number).
 		Timeout(v.cfg.DialTimeout).
+		ChannelID(channelID).
 		Async(true).
 		Run(ctx2)
 	if err2 != nil {
@@ -106,6 +110,11 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operator 
 	select {
 	case <-ctx2.Done():
 		return ctx2.Err()
+	case <-client.Lost():
+		if errHg := v.ami.Hangup(ctx2, dto.Host, channelID, hangupCause); errHg != nil {
+			return fmt.Errorf("cannot close operator channel: %w", errHg)
+		}
+		return fmt.Errorf("client lost while dial to operator")
 	case channel := <-ch:
 		if errClid := v.ami.Setvar(ctx2, dto.Host, *channel, varCallerIDNumber, operator.Number); errClid != nil {
 			return fmt.Errorf("cannot set callerIDNum to operator channel: %w", errClid)

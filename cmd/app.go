@@ -24,5 +24,4 @@ func main() {
 	}
 
 	app.Run(cfg, logger)
-
 }
