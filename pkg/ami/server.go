@@ -188,7 +188,6 @@ func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
 	s.setState(stateReady)
 	s.logger.Info("msg", "Server ready", "addr", s.addr)
 
-	var j int
 	for {
 		select {
 		case <-ctx.Done():
@@ -197,8 +196,11 @@ func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
 		case <-s.stop:
 			s.logoff(ch)
 			return
-		case e := <-ch:
-			j++
+		case e, ok := <-ch:
+			if !ok {
+				s.logger.Info("msg", "Disconnect from server", "addr", s.addr)
+				return
+			}
 			s.ps.Publish(e)
 		}
 	}

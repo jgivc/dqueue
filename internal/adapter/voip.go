@@ -95,14 +95,34 @@ func (v *VoipAdapter) Dial(ctx context.Context, client *entity.Client, operator 
 
 	channelID := uuid.New().String()
 
-	err2 := v.ami.Originate(dto.Host, fmt.Sprintf(v.cfg.DialTemplate, operator.Number)).
-		Application("agi").
-		Data(fmt.Sprintf("agi:async,%s", client.ID)).
+	b := v.ami.Originate(dto.Host, fmt.Sprintf(v.cfg.OriginateTechData, operator.Number)).
 		CallerID(client.Number).
 		Timeout(v.cfg.DialTimeout).
 		ChannelID(channelID).
-		Async(true).
-		Run(ctx2)
+		Variable(v.cfg.VarClientID, client.ID).
+		Async(true)
+
+	if v.cfg.Application != "" {
+		b.Application(v.cfg.Application)
+		if v.cfg.Data != "" {
+			b.Data(v.cfg.Data)
+		}
+	} else {
+		b.Context(v.cfg.Context).Exten(v.cfg.Exten)
+		if v.cfg.Priority > 0 {
+			b.Priority(v.cfg.Priority)
+		}
+	}
+
+	err2 := b.Run(ctx2)
+	// err2 := v.ami.Originate(dto.Host, fmt.Sprintf(v.cfg.OriginateTechData, operator.Number)).
+	// 	Application("agi").
+	// 	Data(fmt.Sprintf("agi:async,%s", client.ID)).
+	// 	CallerID(client.Number).
+	// 	Timeout(v.cfg.DialTimeout).
+	// 	ChannelID(channelID).
+	// 	Async(true).
+	// 	Run(ctx2)
 	if err2 != nil {
 		return err
 	}

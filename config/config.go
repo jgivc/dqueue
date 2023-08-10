@@ -47,10 +47,15 @@ type (
 		// DialContext string        `yaml:"dial_context" env-default:"default"`
 		// DialExten   string        `yaml:"dial_exten" env-default:"s"`
 		// e.g. PJSIP/%s@context, %s - operator number
-		DialTemplate string `yaml:"dial_template" env-default:"PJSIP/%s@default"`
+		OriginateTechData string `yaml:"tech_data" env-default:"PJSIP/%s@default"`
+		Application       string `yaml:"application"`
+		Data              string `yaml:"data"`
+		Context           string `yaml:"context"`
+		Exten             string `yaml:"exten"`
+		Priority          uint   `yaml:"priority"`
 		// DialExten         string `yaml:"dial_to_exten"` // Originate second leg
 		// VarClientChannel  string `yaml:"var_client_channel" env-default:"CLIENT_CHANNEL"`
-		// VarClientID       string `yaml:"var_client_id" env-default:"CLIENT"`
+		VarClientID string `yaml:"var_client_id" env-default:"CLIENT_ID"`
 		// VarOperatorNumber string `yaml:"var_operator_number" env-default:"OPERATOR_NUMBER"`
 	}
 
@@ -109,6 +114,26 @@ func New(fileName string) (*Config, error) {
 		if cfg.AmiConfig.Servers[i].Port == 0 {
 			cfg.AmiConfig.Servers[i].Port = 5038
 		}
+	}
+
+	if cfg.VoipAdapterConfig.Application != "" {
+		if cfg.VoipAdapterConfig.Context != "" || cfg.VoipAdapterConfig.Exten != "" || cfg.VoipAdapterConfig.Priority > 0 {
+			return nil, fmt.Errorf("voip_adapter use application and data or context, exten, priority not both")
+		}
+	}
+
+	if cfg.VoipAdapterConfig.Context != "" {
+		if cfg.VoipAdapterConfig.Application != "" || cfg.VoipAdapterConfig.Data != "" {
+			return nil, fmt.Errorf("voip_adapter use application and data or context, exten, priority not both")
+		}
+
+		if cfg.VoipAdapterConfig.Exten == "" {
+			return nil, fmt.Errorf("voip_adapter if context is defined then exten must be set")
+		}
+	}
+
+	if cfg.VoipAdapterConfig.Application == "" && cfg.VoipAdapterConfig.Context == "" {
+		return nil, fmt.Errorf("voip_adapter at least one must be set: application [data] or context, exten, [priority]")
 	}
 
 	return &cfg, err

@@ -125,6 +125,9 @@ func newPubSub(cfg *config.PubSubConfig, logger logger.Logger) *pubSub {
 					delete(ps.subscribers, s)
 				}
 			case e := <-ps.ch:
+				if e == nil {
+					continue
+				}
 				for sub := range ps.subscribers {
 					if sub.filter(e) {
 						select {
