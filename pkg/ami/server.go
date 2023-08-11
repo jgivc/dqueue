@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jgivc/dqueue/config"
 	"github.com/jgivc/dqueue/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 /*
@@ -63,15 +64,17 @@ type amiServer interface {
 }
 
 type amiServerImpl struct {
-	mux    sync.Mutex // Protect writer against simultaneous use
-	addr   string
-	cfg    *config.AmiServerConfig
-	conn   net.Conn
-	logger logger.Logger
-	state  serverState
-	cf     connectionFactory
-	ps     pubSubIf
-	stop   chan struct{}
+	mux          sync.Mutex // Protect writer against simultaneous use
+	addr         string
+	cfg          *config.AmiServerConfig
+	conn         net.Conn
+	logger       logger.Logger
+	state        serverState
+	cf           connectionFactory
+	ps           pubSubIf
+	stop         chan struct{}
+	readyGauge   *prometheus.GaugeVec
+	eventCounter *prometheus.CounterVec
 }
 
 func (s *amiServerImpl) connect(ctx context.Context) (net.Conn, error) {
@@ -148,7 +151,11 @@ func (s *amiServerImpl) logoff(ch chan *Event) {
 }
 
 func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
-	defer conn.Close()
+	s.readyGauge.WithLabelValues(s.addr).Set(1)
+	defer func() {
+		s.readyGauge.WithLabelValues(s.addr).Set(0)
+		conn.Close()
+	}()
 
 	reader := newAmiReader(conn)
 	defer reader.Close()
@@ -201,6 +208,7 @@ func (s *amiServerImpl) serve(ctx context.Context, conn net.Conn) {
 				s.logger.Info("msg", "Disconnect from server", "addr", s.addr)
 				return
 			}
+			s.eventCounter.WithLabelValues(s.addr).Inc()
 			s.ps.Publish(e)
 		}
 	}
@@ -308,14 +316,16 @@ func (s *amiServerImpl) Close() error {
 }
 
 func newAmiServer(cfg *config.AmiServerConfig, cf connectionFactory,
-	ps pubSubIf, logger logger.Logger) amiServer {
+	ps pubSubIf, reagyGauge *prometheus.GaugeVec, eventCounter *prometheus.CounterVec, logger logger.Logger) amiServer {
 	return &amiServerImpl{
-		addr:   fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		cfg:    cfg,
-		logger: logger,
-		state:  stateDisconnect,
-		ps:     ps,
-		cf:     cf,
-		stop:   make(chan struct{}),
+		addr:         fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		cfg:          cfg,
+		logger:       logger,
+		state:        stateDisconnect,
+		ps:           ps,
+		cf:           cf,
+		stop:         make(chan struct{}),
+		readyGauge:   reagyGauge,
+		eventCounter: eventCounter,
 	}
 }

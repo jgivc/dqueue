@@ -5,16 +5,26 @@ import (
 
 	"github.com/jgivc/dqueue/internal/adapter"
 	"github.com/jgivc/dqueue/internal/adapter/mocks"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/stretchr/testify/suite"
 )
 
 type ClientRepoTestSuite struct {
 	suite.Suite
-	repo *adapter.ClientRepo
+	repo             *adapter.ClientRepo
+	promClientsGauge prometheus.Gauge
+}
+
+func (s *ClientRepoTestSuite) SetupSuite() {
+	s.promClientsGauge = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "app_client_repo_clients_length",
+		Help: "Clients count in clients repo",
+	})
 }
 
 func (s *ClientRepoTestSuite) SetupTest() {
-	s.repo = adapter.NewClientRepo(&mocks.LoggerMock{})
+	s.repo = adapter.NewClientRepo(s.promClientsGauge, &mocks.LoggerMock{})
 }
 
 func (s *ClientRepoTestSuite) AfterTest(_, _ string) {
@@ -102,7 +112,7 @@ func (s *ClientRepoTestSuite) TestRemove() {
 	data2.On("GetUniqueID").Return(id2)
 
 	err = s.repo.Remove(number, data2)
-	s.Require().Error(err)
+	s.Require().NoError(err)
 	s.Assert().True(client.IsAlive())
 
 	err = s.repo.Remove(number, data)

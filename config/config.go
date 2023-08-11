@@ -43,20 +43,14 @@ type (
 	}
 
 	VoipAdapterConfig struct {
-		DialTimeout time.Duration `yaml:"dial_timeout" env-default:"10s"`
-		// DialContext string        `yaml:"dial_context" env-default:"default"`
-		// DialExten   string        `yaml:"dial_exten" env-default:"s"`
-		// e.g. PJSIP/%s@context, %s - operator number
-		OriginateTechData string `yaml:"tech_data" env-default:"PJSIP/%s@default"`
-		Application       string `yaml:"application"`
-		Data              string `yaml:"data"`
-		Context           string `yaml:"context"`
-		Exten             string `yaml:"exten"`
-		Priority          uint   `yaml:"priority"`
-		// DialExten         string `yaml:"dial_to_exten"` // Originate second leg
-		// VarClientChannel  string `yaml:"var_client_channel" env-default:"CLIENT_CHANNEL"`
-		VarClientID string `yaml:"var_client_id" env-default:"CLIENT_ID"`
-		// VarOperatorNumber string `yaml:"var_operator_number" env-default:"OPERATOR_NUMBER"`
+		DialTimeout       time.Duration `yaml:"dial_timeout" env-default:"10s"`
+		OriginateTechData string        `yaml:"tech_data" env-default:"PJSIP/%s@default"`
+		Application       string        `yaml:"application"`
+		Data              string        `yaml:"data"`
+		Context           string        `yaml:"context"`
+		Exten             string        `yaml:"exten"`
+		Priority          uint          `yaml:"priority"`
+		VarClientID       string        `yaml:"var_client_id" env-default:"CLIENT_ID"`
 	}
 
 	AmiConfig struct {

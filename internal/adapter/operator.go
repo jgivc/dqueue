@@ -62,7 +62,7 @@ type OperatorRepo struct {
 }
 
 func (r *OperatorRepo) load(ctx context.Context) ([]*entity.Operator, error) {
-	if len(r.cfg.Operators) > 0 {
+	if r.cfg.Operators != nil && len(r.cfg.Operators) > 0 {
 		operators := make([]*entity.Operator, len(r.cfg.Operators))
 		for i, num := range r.cfg.Operators {
 			operators[i] = entity.NewOperator(num, "", "")
@@ -135,10 +135,7 @@ func (r *OperatorRepo) SetBusy(number string, busy bool) error {
 	if _, exists := r.operators[number]; exists {
 		r.operators[number].SetBusy(busy)
 		r.logger.Info("msg", "Set operator busy", "number", number, "busy", busy)
-		// return nil
 	}
-
-	// return fmt.Errorf("operator %s does not exists: %w", number, errOperatorRepo)
 
 	return nil
 }
@@ -176,6 +173,7 @@ func NewOperatorRepoWithAPIClient(apiClient APIClient, logger logger.Logger) *Op
 	return &OperatorRepo{
 		apiClient: apiClient,
 		operators: make(map[string]*entity.Operator),
+		cfg:       &config.OperatorRepo{},
 		logger:    logger,
 	}
 }

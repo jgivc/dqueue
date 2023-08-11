@@ -14,6 +14,8 @@ import (
 	"github.com/jgivc/dqueue/config"
 	"github.com/jgivc/dqueue/internal/service/mocks"
 	"github.com/jgivc/dqueue/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
@@ -69,7 +71,17 @@ func (s *AmiServerTestSuite) TestFife() { //nolint: gocognit
 	eventsRecv := make([]*Event, 0)
 	var running atomic.Bool
 
-	s.srv = newAmiServer(cfg, s.cf, ps, s.logger)
+	readyGauge := promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "server_ready",
+		Help: "Server ready state",
+	}, []string{"addr"})
+
+	eventCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "server_receive_events",
+		Help: "Receive events from server counter",
+	}, []string{"addr"})
+
+	s.srv = newAmiServer(cfg, s.cf, ps, readyGauge, eventCounter, s.logger)
 
 	s.T().Run("group", func(t *testing.T) {
 		wg.Add(1)

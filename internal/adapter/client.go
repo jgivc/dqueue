@@ -8,7 +8,6 @@ import (
 	"github.com/jgivc/dqueue/internal/entity"
 	"github.com/jgivc/dqueue/pkg/logger"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
@@ -98,13 +97,10 @@ func (r *ClientRepo) Close() {
 	r.clients = nil
 }
 
-func NewClientRepo(logger logger.Logger) *ClientRepo {
+func NewClientRepo(promClientsGauge prometheus.Gauge, logger logger.Logger) *ClientRepo {
 	return &ClientRepo{
-		clients: make(map[string]*entity.Client),
-		logger:  logger,
-		promClientsGauge: promauto.NewGauge(prometheus.GaugeOpts{
-			Name: "app_client_repo_clients_length",
-			Help: "Clients count in clients repo",
-		}),
+		clients:          make(map[string]*entity.Client),
+		logger:           logger,
+		promClientsGauge: promClientsGauge,
 	}
 }

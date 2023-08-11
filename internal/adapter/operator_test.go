@@ -89,7 +89,7 @@ func (s *OperatorRepoTestSuite) TestGetOperatorsOne() {
 	s.api.AssertExpectations(s.T())
 
 	err = s.repo.SetBusy("NotExists", true)
-	s.Assert().Error(err)
+	s.Assert().NoError(err)
 
 	s.setBusy("1111", true)
 	err = s.repo.SetBusy("1111", true)

@@ -7,6 +7,8 @@ import (
 
 	"github.com/jgivc/dqueue/config"
 	"github.com/jgivc/dqueue/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
@@ -54,9 +56,19 @@ func (a *ami) Close() error {
 }
 
 func (a *ami) Start(ctx context.Context) error {
+	readyGauge := promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "server_ready",
+		Help: "Server ready state",
+	}, []string{"addr"})
+
+	eventCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "server_receive_events",
+		Help: "Receive events from server counter",
+	}, []string{"addr"})
+
 	for i := range a.cfg.Servers {
 		cfg := a.cfg.Servers[i]
-		srv := newAmiServer(&cfg, a.cf, a.ps, a.logger)
+		srv := newAmiServer(&cfg, a.cf, a.ps, readyGauge, eventCounter, a.logger)
 		if err := srv.Start(ctx); err != nil {
 			return fmt.Errorf("cannot connect to server %s:%d, %w", cfg.Host, cfg.Port, err)
 		}

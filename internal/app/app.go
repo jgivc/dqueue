@@ -15,6 +15,8 @@ import (
 	"github.com/jgivc/dqueue/internal/service"
 	"github.com/jgivc/dqueue/pkg/ami"
 	"github.com/jgivc/dqueue/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -29,7 +31,12 @@ func Run(cfg *config.Config, logger logger.Logger) {
 
 	voip := adapter.NewVoipAdapter(&cfg.VoipAdapterConfig, ami)
 	queue := adapter.NewQueue(int(cfg.QueueConfig.MaxClients))
-	clientRepo := adapter.NewClientRepo(logger)
+	promClientsGauge := promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "app_client_repo_clients_length",
+		Help: "Clients count in clients repo",
+	})
+
+	clientRepo := adapter.NewClientRepo(promClientsGauge, logger)
 	operatorRepo := adapter.NewOperatorRepo(&cfg.OperatorRepo, logger)
 	strategy := service.NewRrStrategy(&cfg.DialerConfig, voip, operatorRepo, logger)
 	dialer := service.NewDialerService(&cfg.DialerConfig, queue, operatorRepo, strategy, logger)
