@@ -23,13 +23,13 @@ services:
         aliases:
           - office.voip
     
-  sipp_nois:
-    build: sipp_cl
-    container_name: sipp_nois
-    command: kamailio -sf uac.xml -s 4000 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 2
-    depends_on:
-      kamailio:
-        condition: service_healthy
+  # sipp_nois:
+  #   build: sipp_cl
+  #   container_name: sipp_nois
+  #   command: kamailio -sf uac.xml -s 4000 -inf client_accounts.csv -infindex client_accounts.csv 0 -key line 2
+  #   depends_on:
+  #     kamailio:
+  #       condition: service_healthy
 
   sipp_op1:
     build: sipp_op
