@@ -1,4 +1,6 @@
 # Dqueue
+[![Go Report Card](https://goreportcard.com/badge/github.com/jgivc/dqueue)](https://goreportcard.com/report/github.com/jgivc/dqueue)
+
 
 Dqueue is a distributed queue between multiple asterisk servers when they are behind a sip proxy server such as kamailio.
 Calls are managed by ami. Clients are queued through the agi(agi:async) dialplan application in the specified context.
@@ -6,6 +8,7 @@ The operator is called by ami action Originate. After the operator response, the
 via an agi:async dialplan application with a client id argument. The client ID can be obtained from the CLIENT_ID variable
 of operator channel. After that, the channels will be combined into a bridge. Consider that application as mvp
 
+## Usage
 
 Config example
 ```yaml

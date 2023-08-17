@@ -32,7 +32,7 @@ func (e *Event) write(w io.Writer) error {
 
 	n, err := w.Write(b.Bytes())
 	if n != b.Len() {
-		return fmt.Errorf("not all data writen: expected: %d, actual: %d", b.Len(), n)
+		return fmt.Errorf("not all data written: expected: %d, actual: %d", b.Len(), n)
 	}
 
 	return err
