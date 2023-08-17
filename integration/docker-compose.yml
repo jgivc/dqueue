@@ -14,7 +14,7 @@ services:
     volumes:
       - "./kamailio/etc:/etc/kamailio"
     healthcheck:
-      test: ["CMD-SHELL", "test $(kamcmd dispatcher.list | grep 'FLAGS: AX' | wc -l) -eq 2"]
+      test: ["CMD-SHELL", "test $(kamcmd dispatcher.list | grep 'FLAGS: AP' | wc -l) -eq 2"]
       interval: 5s
       timeout: 2s
       retries: 10

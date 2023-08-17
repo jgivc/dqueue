@@ -47,7 +47,7 @@ func Run(cfg *config.Config, logger logger.Logger) {
 
 	operatorService := service.NewOperatorService(operatorRepo, dialer, logger)
 
-	clientHandler := handler.NewClientHandler(clientService, logger)
+	clientHandler := handler.NewClientHandler(clientService, cfg.Context, logger)
 	clientHandler.Register(ami)
 
 	operatorHandler := handler.NewOperatorHandler(operatorService, logger)

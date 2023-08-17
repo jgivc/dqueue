@@ -1,5 +1,6 @@
 package keys
 
 const (
-	Event = "Event"
+	Event   = "Event"
+	Context = "Context"
 )

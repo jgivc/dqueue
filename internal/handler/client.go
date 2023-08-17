@@ -35,6 +35,7 @@ type ClientHandler struct {
 	logger                      logger.Logger
 	promNewClientsCounter       prometheus.Counter
 	promNewClientsErrorsCounter prometheus.Counter
+	contextName                 string
 }
 
 func (h *ClientHandler) Register(ps pubSub) {
@@ -61,6 +62,9 @@ func (h *ClientHandler) Register(ps pubSub) {
 
 			switch e.Get(keys.Event) {
 			case events.AsyncAGIStart:
+				if e.Get(keys.Context) != h.contextName {
+					continue
+				}
 				args, err := parseArgs(e.Get(fields.Env))
 				if err != nil {
 					h.logger.Error("msg", "Cannot parse AsyncAGIStart env args",
@@ -120,7 +124,7 @@ func parseArgs(env string) ([]string, error) {
 	return args, nil
 }
 
-func NewClientHandler(srv clientService, logger logger.Logger) *ClientHandler {
+func NewClientHandler(srv clientService, contextName string, logger logger.Logger) *ClientHandler {
 	return &ClientHandler{
 		srv:    srv,
 		logger: logger,
@@ -132,5 +136,6 @@ func NewClientHandler(srv clientService, logger logger.Logger) *ClientHandler {
 			Name: "app_clients_handle_errors_total",
 			Help: "New clients handle error",
 		}),
+		contextName: contextName,
 	}
 }

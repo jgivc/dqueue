@@ -9,7 +9,7 @@ extensions.public = {
 extensions.kamailio = {
 
     ["3000"] = function(ctx, ext)
-        app["goto"]("queue-test", "s", 1)
+        app["goto"]("dqueue", "s", 1)
         app.hangup()
     end;
 
@@ -48,7 +48,7 @@ extensions.LOCAL = {
     end;
 }
 
-extensions["queue-test"] = {
+extensions["dqueue"] = {
     s = function(ctx, ext)
         app.noop("Test queue")
         app.agi("agi:async")
