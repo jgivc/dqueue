@@ -74,7 +74,7 @@ extensions["dqueue"] = {
     ["s-OPERATOR"] = function(ctx, ext)
         local client_id = channel.CLIENT_ID:get()
         app.noop("Operator " .. channel.CALLERID("num"):get() .. " for client: " .. client_id)
-        app.agi("agi:async", )
+        app.agi("agi:async", client_id)
         app.Hangup()
     end;
 }
